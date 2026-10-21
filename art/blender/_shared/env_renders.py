@@ -122,18 +122,22 @@ def r_pickups():
         root.hide_render=True
 
 def r_stations():
+    """top / in-game / 3-4, ship docked on Dock_Pad_0 + one ship approaching the entrance; side scale view."""
     reset(); d=f"{RND}/stations"
-    imp(f"{A}/stations/beacon_transfer_01.glb"); ship((0,3.9,0))
-    ship((-4.0,-9.0,0),rotz=math.radians(-25))
+    imp(f"{A}/stations/station_01.glb"); ship((0,3.0,0)); ship((1.2,9.4,0),rotz=math.radians(170))
+    it=[("Dock_Center (dock radius ~5 m)",(0,-1.5,0)),("entrance",(0,8.0,0)),("ship docked (1.84 m)",(2.2,2.4,0)),("ship approaching",(1.2,10.8,0))]
     C.set_res(RES)
-    shot(C.cam("Top",(0,0,60),(0,0,0),ortho=17),f"{d}/beacon_transfer_01_top{TAG}.png",[("Dock_0 (ship docked)",(0,5.3,0)),("Dock_1",(0,-5.6,0))])
-    shot(C.cam("Game",(0,-9.5,23),(0,-0.8,0),lens=40),f"{d}/beacon_transfer_01_ingame{TAG}.png")
-    shot(C.cam("Q34",(13,-15,9),(0,0,-0.3),lens=40),f"{d}/beacon_transfer_01_34{TAG}.png")
+    shot(C.cam("Top",(0,1.5,60),(0,1.5,0),ortho=19),f"{d}/station_01_top{TAG}.png",it)
+    shot(C.cam("Game",(0,-6.5,21),(0,1.0,0),lens=40),f"{d}/station_01_ingame{TAG}.png",it)
+    shot(C.cam("Q34",(12,-13,8),(0,0.5,-0.3),lens=40),f"{d}/station_01_34{TAG}.png")
+    C.set_res(int(RES*0.42),RES)
+    ship((8.9,-3.0,0))   # extra ship beside the station, in front of everything for the side scale view
+    shot(C.cam("Side",(1.0,-80,0.4),(1.0,0,0.4),ortho=22),f"{d}/station_01_scale_side{TAG}.png",[("station_01  ~13.7 m",(0,0,3.3)),("ship 1.84 m",(8.9,-3.0,1.0))])
 
 def r_mock():
     """gameplay mock: camera ~30 m up, ~22 deg tilt like the ship ingame cam."""
     reset(); d=f"{RND}/mock"
-    imp(f"{A}/stations/beacon_transfer_01.glb",(-11,7,0))
+    imp(f"{A}/stations/station_01.glb",(-11,7,0),rotz=math.radians(-60))
     S=ship((0.5,-1.0,0),rotz=math.radians(35))
     rocks=[("asteroid_l_02",(9,6,0),0.4),("asteroid_ore_l_01",(12,-7,0),2.0),("asteroid_m_01",(-4,-9,0),1.0),("asteroid_m_03",(3,9.5,0),2.5),
            ("asteroid_s_01",(6,-1,0),0.0),("asteroid_s_02",(-6,1.5,0),1.2),("asteroid_s_03",(15.5,1.5,0),0.7),("asteroid_l_03",(-15,-8,0),0.3),
