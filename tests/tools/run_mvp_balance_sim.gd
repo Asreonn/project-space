@@ -9,6 +9,7 @@ const FIRST_L3_MAX := 600.0 ## s, median (Game Designer: first L3 <= 10 min)
 const FIRST_L3_SOFT_MAX := 660.0 ## s, slowest seed (ideally <= 11 min; warning only)
 const FULL_L3_BAND := Vector2(1200.0, 1500.0) ## s (Game Designer: ~20-25 min median)
 const SPEEDS: Array[float] = [10.0, 12.0, 14.0, 16.0]
+const MEASURED := MvpBalanceSim.MEASURED_REAL
 
 
 func _init() -> void:
@@ -81,8 +82,56 @@ func _init() -> void:
 	if l_med < FULL_L3_BAND.x or l_med > FULL_L3_BAND.y:
 		printerr("PACING FAIL: full L3 median %s" % _mmss(l_med))
 		ok = false
+	print("\n### Calibration: first L1 run and pacing, median of %d seeds\n" % SEEDS)
+	print("| source | L1 run | fly | mine | collect | dock | credits | first upgrade | first L3 | full L3 |")
+	print("|---|---|---|---|---|---|---|---|---|---|")
+	print(_cal_row("real scene (bot)", MEASURED))
+	sim.set_profile(MvpBalanceSim.PROFILE_BOT)
+	var bot := _summary(sim)
+	print(_cal_row("sim bot", bot))
+	sim.set_profile(MvpBalanceSim.PROFILE_HUMAN)
+	print(_cal_row("sim human (pacing)", _summary(sim)))
+	for k: String in ["run", "credits", "first", "first_l3", "full"]:
+		var m: float = MEASURED[k]
+		var b: float = bot[k]
+		if absf(b - m) > 0.2 * m:
+			printerr("CALIBRATION FAIL: sim bot %s %.0f vs real %.0f (> 20%%)" % [k, b, m])
+			ok = false
 	print("\nPACING %s" % ("OK" if ok else "FAIL"))
 	quit(0 if ok else 1)
+
+
+func _summary(sim: MvpBalanceSim) -> Dictionary:
+	var keys: Array[String] = ["run", "fly", "mine", "collect", "dock", "credits", "first", "first_l3", "full"]
+	var acc: Dictionary[String, Array] = {}
+	for k: String in keys:
+		acc[k] = []
+	for sd in SEEDS:
+		var r := sim.simulate(1000 + sd)
+		var row := r.runs[0]
+		acc["run"].append(row.duration)
+		acc["fly"].append(row.fly_t)
+		acc["mine"].append(row.mine_t - row.collect_t)
+		acc["collect"].append(row.collect_t)
+		acc["dock"].append(row.dock_t)
+		acc["credits"].append(float(row.credits))
+		acc["first"].append(r.first_upgrade_t)
+		acc["first_l3"].append(r.first_l3_t)
+		acc["full"].append(r.full_l3_t)
+	var out := {}
+	for k: String in keys:
+		var a: Array[float] = []
+		a.assign(acc[k])
+		out[k] = _median(a)
+	return out
+
+
+static func _cal_row(label: String, d: Dictionary) -> String:
+	var v: Dictionary[String, float] = {}
+	v.assign(d)
+	return "| %s | %ds | %ds | %ds | %ds | %ds | %d | %s | %s | %s |" % [label, roundi(v["run"]), roundi(v["fly"]),
+		roundi(v["mine"]), roundi(v["collect"]), roundi(v["dock"]), roundi(v["credits"]),
+		_mmss(v["first"]), _mmss(v["first_l3"]), _mmss(v["full"])]
 
 
 func _median_result(sim: MvpBalanceSim) -> MvpBalanceSim.Result:
