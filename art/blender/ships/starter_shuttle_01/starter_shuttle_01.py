@@ -6,6 +6,7 @@ Headless (one Blender process at a time, keep RAM low):
   blender -b -P starter_shuttle_01.py -- --parts-table            # each part x level, isolated
   blender -b -P starter_shuttle_01.py -- --combo 3,1,2,1 --tag mixA   # head,body,wings,engine levels
   (--clip-report prints triangle overlap counts between parts for the built combo)
+  blender -b -P starter_shuttle_01.py -- --readability after      # nose-direction check at in-game scale (ortho 18)
 
 Naming standard: object <Part>_starter_shuttle_01 (glTF root node), mesh <part>_L<n>_mesh.
 Body = root, origin = ship center. Body children: Socket_Head/Wings/Engine, Hardpoint_L/R/Nose
@@ -263,7 +264,8 @@ HP_TOP_RESERVED = (0.0,-0.36,0.205); HP_TOP_KEEPOUT = 0.06
 # ---------------- HEAD ----------------
 def make_head(mats, lv):
     mb=MB()
-    hull_section(mb,Y_HEAD,lambda a,i: ORANGE if a==0 else (GREY if i>=CHINE else WHITE))
+    # readability: orange nose cone covers the first two hull bands (0.94 -> 0.74) + the top of the third (-> 0.65); was one band
+    hull_section(mb,Y_HEAD,lambda a,i: ORANGE if (a<=1 or (a==2 and i<CHINE)) else (GREY if i>=CHINE else WHITE))
     t=mb.v(NOSE)
     for i in range(6):
         nA=hull_normal(y_all(1),0,i,"up" if i<CHINE else "dn",1); nB=hull_normal(y_all(1),0,i+1,"up" if i<CHINE else "dn",1)
@@ -282,6 +284,8 @@ def make_head(mats, lv):
         cw=0.122*sw; h=0.078*sh; frame_bar(mb,y,cw,h)
     for i in (0,1,2): mb.quad([surf(0.665,i,0),surf(0.665,i,1),surf(0.650,i,1),surf(0.650,i,0)],DARK)
     mb.quad([surf(0.50,2,0.35),surf(0.50,2,0.65),surf(0.47,2,0.65),surf(0.47,2,0.35)],DARK)
+    if lv<3:   # readability: cyan nose light on the dorsal centre line, just behind the orange cone
+        mb.quad([surf(0.645,0,0.0,0.005),surf(0.645,0,0.8,0.005),surf(0.565,0,0.8,0.005),surf(0.565,0,0.0,0.005)],LIGHT)
     if lv>=2:
         # canards: small swept fins at the cheeks (white with orange tips)
         span={2:0.34,3:0.40}[lv]; zc=lambda x,y: 0.25*zt_at(y)-0.004
@@ -302,7 +306,7 @@ def make_head(mats, lv):
         rb=mb.loft(rr,lambda a,i:DARK)
         mb.face((rb,rb+1,rb+2,mb.v((0,0.80,zt_at(0.80)-0.01))),DARK)
         mb.face((rb+8,rb+7,rb+6,mb.v((0,0.60,zt_at(0.60)-0.01))),DARK)
-        mb.quad([(0,0.70,zt_at(0.70)+0.0285),(0.014,0.70,zt_at(0.70)+0.025),(0.014,0.64,zt_at(0.64)+0.027),(0,0.64,zt_at(0.64)+0.0305)],LIGHT)
+        mb.quad([(0,0.745,zt_at(0.745)+0.019),(0.020,0.745,zt_at(0.745)+0.0135),(0.020,0.625,zt_at(0.625)+0.0215),(0,0.625,zt_at(0.625)+0.0305)],LIGHT)   # readability: longer, wider
         # orange nose stripes + cyan canopy-side light frames
         mb.quad([surf(0.36,2,0.05),surf(0.36,2,0.25),surf(0.12,2,0.25),surf(0.12,2,0.05)],LIGHT)
     ob=build(PART_OBJ["head"],f"head_L{lv}_mesh",mb,mats,SOCK["head"])
@@ -324,7 +328,7 @@ def make_body(mats, lv):
     mb.face((b,b+1,b+2,mb.v((0,-0.15,zt_at(-0.15)-0.01))),SPINE)
     for y0 in (-0.21,-0.44):
         y1=y0-0.07; z0=zt_at(y0)+0.0175; z1=zt_at(y1)+0.0175
-        mb.quad([(0.014,y0,z0),(0.045,y0,z0-0.002),(0.045,y1,z1-0.002),(0.014,y1,z1)],LIGHT)
+        mb.quad([(0.014,y0,z0),(0.045,y0,z0-0.002),(0.045,y1,z1-0.002),(0.014,y1,z1)],LIGHT if y0>-0.3 else METAL)   # readability: rear one unlit
     if lv==1:
         for k in range(3):
             ya=-0.24-k*0.065; mb.quad([surf(ya,2,0.2),surf(ya,2,0.8),surf(ya-0.035,2,0.8),surf(ya-0.035,2,0.2)],DARK)
@@ -352,7 +356,7 @@ def make_body(mats, lv):
 # ---------------- ENGINE ----------------
 def make_engine(mats, lv):
     mb=MB(); YE=y_engine(lv)
-    hull_section(mb,YE,lambda a,i: GUN if i>=CHINE else (DARK,GUN,BROWN)[i],lv)
+    hull_section(mb,YE,lambda a,i: GUN if i>=CHINE else (DARK,GUN,GUN)[i],lv)   # readability: brown flank band -> gunmetal
     seam_cap(mb,SEAM_ENGINE,lv)
     yr=YE[-1]; rr=ring(yr,lv); mb.cap(rr[::-1],(0,yr,0.03),DARK)
     zt=lambda y: zt_at(y,lv)
@@ -364,7 +368,7 @@ def make_engine(mats, lv):
     l=b+9; mb.face((l+2,l+1,l,mb.v((0,cw[-1][0],zt(cw[-1][0])-0.02))),DARK)
     for y0 in (-0.66,-0.72) if lv<3 else (-0.65,-0.70,-0.75):
         y1=y0-0.025; z=zt(y0)+ch+0.0005
-        mb.quad([(0.0,y0,z),(0.085,y0,z-0.004),(0.085,y1,z-0.004),(0.0,y1,z)],ORANGE)
+        mb.quad([(0.0,y0,z),(0.085,y0,z-0.004),(0.085,y1,z-0.004),(0.0,y1,z)],METAL)   # readability: was orange
     # nozzles grow per level
     NX,NZ,SEG = 0.112 if lv==1 else (0.118 if lv==2 else 0.126), 0.028, 10
     R={1:(0.064,0.074,0.080,0.057),2:(0.070,0.082,0.090,0.066),3:(0.076,0.090,0.100,0.074)}[lv]
@@ -374,7 +378,7 @@ def make_engine(mats, lv):
     b=len(mb.V)
     for q in nr:
         for p in q: mb.v(p)
-    for s,cell in enumerate([GUN,ORANGE,METAL if lv<3 else LIGHT,DARK]):
+    for s,cell in enumerate([GUN,METAL,METAL if lv<3 else LIGHT,DARK]):   # readability: orange nozzle band -> metal; glow kept
         for k in range(SEG):
             a=b+s*SEG+k; a2=b+s*SEG+(k+1)%SEG; mb.face((a,a2,a2+SEG,a+SEG),cell)
     mb.face([b+4*SEG+k for k in range(SEG)],GLOW)
@@ -382,13 +386,13 @@ def make_engine(mats, lv):
         # side intake scoops on the engine flanks
         raised_panel(mb,-0.60,-0.74,2,0.15,0.80,0.022,GUN,DARK,lv)
         mb.quad([surf(-0.605,2,0.22,0.0225,lv),surf(-0.605,2,0.73,0.0225,lv),surf(-0.64,2,0.73,0.0225,lv),surf(-0.64,2,0.22,0.0225,lv)],DARK)
-        mb.quad([surf(-0.69,2,0.25,0.023,lv),surf(-0.69,2,0.70,0.023,lv),surf(-0.72,2,0.70,0.023,lv),surf(-0.72,2,0.25,0.023,lv)],LIGHT)
+        mb.quad([surf(-0.69,2,0.25,0.023,lv),surf(-0.69,2,0.70,0.023,lv),surf(-0.72,2,0.70,0.023,lv),surf(-0.72,2,0.25,0.023,lv)],SPINE)   # readability: unlit
     if lv>=3:
         # twin vertical tail fins on the cowl edges, canted outward
         fx=cwid-0.008; zb=zt(-0.70)+0.02
         fin=[(-0.60,zb),(-0.83,zb),(-0.90,zb+0.20),(-0.80,zb+0.20)]
-        mb.vfin(fx,fin,0.022,WHITE,lambda i: ORANGE if i==3 else (DARK if i==2 else WHITE),lean=0.25)
-        mb.quad([(fx+0.012+0.25*0.17,-0.81,zb+0.17),(fx+0.012+0.25*0.20,-0.82,zb+0.20),(fx+0.012+0.25*0.20,-0.88,zb+0.20),(fx+0.012+0.25*0.17,-0.865,zb+0.17)],LIGHT)
+        mb.vfin(fx,fin,0.022,METAL,lambda i: DARK if i in (2,3) else METAL,lean=0.25)   # readability: dark fins, no orange
+        mb.quad([(fx+0.012+0.25*0.17,-0.81,zb+0.17),(fx+0.012+0.25*0.20,-0.82,zb+0.20),(fx+0.012+0.25*0.20,-0.88,zb+0.20),(fx+0.012+0.25*0.17,-0.865,zb+0.17)],SPINE)
     fx_y=Ye[2]-0.005
     ob=build(PART_OBJ["engine"],f"engine_L{lv}_mesh",mb,mats,SOCK["engine"])
     return ob, {"FX_EngineTrail_0":(-NX,fx_y,NZ),"FX_EngineTrail_1":(NX,fx_y,NZ)}
@@ -612,8 +616,24 @@ def report_tris(P,label):
         n=tri_count(P[k]); tot+=n; print(f"TRIS {label} {k}: {n}")
     print(f"TRIS {label} total: {tot}")
 
+def readability(tag, res=256):
+    """Direction-readability check at in-game scale: ortho camera with an 18 m vertical view
+    (mvp.md default 24, zoom-in 18) tilted 10 deg from vertical, rendered as a res x res crop of a
+    1080p frame (ship ~110 px long, like the game). No outlines, as in Godot. Headings: nose up,
+    down, left, right (screen)."""
+    for lv in (1,2,3):
+        bpy.ops.wm.read_factory_settings(use_empty=True)
+        P=build_ship({k:lv for k in PARTS}); setup_render(res); s=bpy.context.scene
+        s.render.use_freestyle=False
+        c=cam("CamRead",(0,-math.tan(math.radians(10))*40,40),(0,0,0),ortho=18*res/1080)
+        for name,deg in (("up",0),("down",180),("left",90),("right",-90)):
+            P["body"].rotation_euler.z=math.radians(deg); bpy.context.view_layer.update()
+            render(c,f"{RND}/readability/{tag}/L{lv}_{name}.png")
+        P["body"].rotation_euler.z=0
+
 def main():
     os.makedirs(RND,exist_ok=True)
+    if arg("--readability"): readability(arg("--readability"))
     if "--export" in ARGS and "PS_PREVIEWS" not in os.environ and os.path.isdir(os.path.join(ROOT,".git")):
         print("NOTE: running inside the repo; set PS_PREVIEWS/PS_RENDERS outside the repo to keep previews out of git")
     if "--export" in ARGS:
