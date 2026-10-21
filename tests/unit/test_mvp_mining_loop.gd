@@ -11,7 +11,7 @@ const PROPOSAL := "res://data/balance/mvp_economy_proposal.json"
 var ship: ShipController
 var laser: MiningLaser
 var proposal: Dictionary
-var started: Array[Vector3] = []
+var started: Array = []  ## [origin: Node3D, target: Node3D] per mining_beam_started
 var stopped := 0
 
 
@@ -35,8 +35,8 @@ func after_each() -> void:
 	EventBus.mining_beam_stopped.disconnect(_on_stopped)
 
 
-func _on_started(origin: Vector3, _target: Vector3) -> void:
-	started.append(origin)
+func _on_started(origin: Node3D, target: Node3D) -> void:
+	started.append([origin, target])
 
 
 func _on_stopped() -> void:
@@ -87,6 +87,10 @@ func test_beam_breaks_small_asteroid_then_sell_and_upgrade() -> void:
 	var expected := laser.definition.spin_up + rock.max_hp / laser.damage_per_second()
 	assert_almost_eq(float(frames) / hz, expected, 0.2, "break time ~ spin_up + HP / dps")
 	assert_eq(started.size(), 1, "mining_beam_started once")
+	if started.size() == 1:
+		var ev: Array = started[0]
+		assert_eq(ev[1], rock, "beam target = the asteroid node")
+		assert_true(ev[0] is Node3D, "beam origin = FX_MiningOrigin node")
 	assert_eq(stopped, 1, "mining_beam_stopped once")
 	assert_null(laser.hit_asteroid, "beam released the broken asteroid")
 

@@ -40,7 +40,7 @@ func apply_mining_damage(amount: float, _hit_point: Vector3) -> bool:
 	if hp <= 0.0:
 		is_broken = true
 		collision_layer = 0
-		EventBus.asteroid_destroyed.emit(global_position, 1.0)
+		EventBus.asteroid_destroyed.emit(global_position, size)
 		broken.emit(self)
 	return true
 

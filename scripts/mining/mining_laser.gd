@@ -7,8 +7,12 @@ extends Node3D
 ## definition.damage_per_second(mining_power) * dt through its
 ## apply_mining_damage(amount, hit_point) method (asteroid.gd, Godot Engineer).
 ## The beam never moves ore into cargo; ore drops on break and the magnet collects it.
-## EventBus: mining_beam_started(origin, target) / mining_beam_updated(origin, target)
-## each physics frame while on / mining_beam_stopped(). Positions in world space.
+## EventBus (signature as committed in scripts/core/event_bus.gd):
+## mining_beam_started(origin: Node3D, target: Node3D) when the beam turns on and
+## again whenever it locks onto a new asteroid; origin = FX_MiningOrigin node,
+## target = asteroid node or null (no hit: VFX draws to beam_end / beam_range).
+## mining_beam_stopped() when it turns off. beam_origin / beam_end stay public
+## world positions for per-frame polling.
 ## Public API matches the integration build (setup, set_stats, mine, beam_*).
 
 signal firing_changed(on: bool)
@@ -40,8 +44,7 @@ func _ready() -> void:
 	if ship == null:
 		ship = _find_ship()
 	_auto_setup.call_deferred()
-	if EventBus.has_signal(&"asteroid_destroyed"):
-		EventBus.connect(&"asteroid_destroyed", _on_asteroid_destroyed)
+	EventBus.asteroid_destroyed.connect(_on_asteroid_destroyed)
 
 
 ## Standalone player_ship.tscn: pick up the ship's assembler once the ship is ready.
@@ -88,10 +91,15 @@ func mine(asteroid: Node3D, dt: float) -> bool:
 
 
 func get_origin() -> Vector3:
+	return get_origin_node().global_position
+
+
+## FX_MiningOrigin of the current head, or this node when there is none.
+func get_origin_node() -> Node3D:
 	var marker := assembler.get_mining_origin() if assembler != null else null
 	if marker != null and marker.is_inside_tree():
-		return marker.global_position
-	return global_position
+		return marker
+	return self
 
 
 ## Beam direction on the XZ plane: toward the aim point, clamped to the arc.
@@ -117,8 +125,9 @@ func _set_firing(on: bool) -> void:
 	firing = on
 	_spin_t = 0.0
 	if on:
-		_update_beam()
-		EventBus.mining_beam_started.emit(beam_origin, beam_end)
+		_update_beam()  # a hit here already emitted started via _set_target
+		if hit_asteroid == null:
+			EventBus.mining_beam_started.emit(get_origin_node(), null)
 	else:
 		_set_target(null)
 		EventBus.mining_beam_stopped.emit()
@@ -128,7 +137,6 @@ func _set_firing(on: bool) -> void:
 func _tick(dt: float) -> void:
 	_spin_t += dt
 	_update_beam()
-	EventBus.mining_beam_updated.emit(beam_origin, beam_end)
 	if hit_asteroid != null and _spin_t >= definition.spin_up:
 		hit_asteroid.call(DAMAGE_METHOD, damage_per_second() * dt, beam_end)
 
@@ -157,6 +165,8 @@ func _set_target(target: Node3D) -> void:
 		return
 	hit_asteroid = target
 	target_changed.emit(target)
+	if firing and target != null:
+		EventBus.mining_beam_started.emit(get_origin_node(), target)
 
 
 ## The collider may be a child body of the asteroid root; walk up to the node
@@ -178,7 +188,7 @@ static func _is_minable(n: Node3D) -> bool:
 	return not broken
 
 
-func _on_asteroid_destroyed(_position: Vector3, _size: float) -> void:
+func _on_asteroid_destroyed(_position: Vector3, _size: StringName) -> void:
 	# The broken asteroid leaves the asteroid layer; re-cast now so the beam
 	# does not keep pointing at it for a frame.
 	if firing:
