@@ -114,7 +114,7 @@ Mevcut `event_bus.gd`'deki sinyaller korunur, adları ve argümanları değişme
 | `mining_beam_started(origin: Vector3, target: Vector3)`: dünya konumları (`FX_MiningOrigin` ve isabet noktası); koddaki imza esas | Gameplay (kazma ışını) | VFX (ışını açar) |
 | `mining_beam_stopped()` | Gameplay (kazma ışını) | VFX |
 | `asteroid_damaged(asteroid: Node3D, hit_position: Vector3, hp_ratio: float)`: ışın temas ettiği her fizik karesinde | Engineer (`asteroid.gd`) | VFX (ışın ucu, kıvılcım, kızarma) |
-| `asteroid_destroyed(position: Vector3, size: StringName)` | Engineer (`asteroid.gd`) | VFX (kırılma), Engineer (yeniden doğma sayacı), Gameplay (ışını keser) |
+| `asteroid_destroyed(position: Vector3, radius: float)` (metre; S/M/L sınıfı gerekirse yarıçaptan türetilir) | Engineer (`asteroid.gd`) | VFX (kırılma), Engineer (yeniden doğma sayacı), Gameplay (ışını keser) |
 | `ore_spawned(position: Vector3, item_id: StringName, amount: int)` | Engineer (pickup sistemi) | VFX (parlama) |
 | `ore_collected(item_id: StringName, amount: int, position: Vector3)` | Engineer (pickup sistemi, kargo kabul edince) | VFX (pop), UI (küçük "+n" geri bildirimi) |
 | `cargo_added(item_id: StringName, amount: int)` *(mevcut)* | Engineer (`GameState`) | UI |
