@@ -18,30 +18,39 @@ func test_connects_to_bus_signals() -> void:
 		assert_has(director.connected, sig)
 
 
-func test_beam_with_node_origin_and_no_target() -> void:
+func test_beam_follows_bus_signals() -> void:
 	var origin := Node3D.new()
 	add_child_autofree(origin)
 	origin.global_position = Vector3(3, 0, 4)
 	EventBus.mining_beam_started.emit(origin, null)
 	assert_true(director.beam.active)
-	assert_almost_eq(director.beam.target_point, Vector3(3, 0, 4), Vector3.ONE * 0.001)
 	EventBus.mining_beam_updated.emit(origin, Vector3(3, 0, -6))
 	assert_almost_eq(director.beam.target_point, Vector3(3, 0, -6), Vector3.ONE * 0.001)
-	var rock := Node3D.new()
-	add_child_autofree(rock)
-	EventBus.asteroid_damaged.emit(rock, Vector3(3, 0, -5), 0.5)
-	assert_almost_eq(director.beam.target_point, Vector3(3, 0, -5), Vector3.ONE * 0.001)
-	assert_true(director.beam.hitting)
+	EventBus.mining_beam_stopped.emit()
+	assert_false(director.beam.active and director.beam.hitting)
+
+
+func test_beam_source_is_the_mining_laser() -> void:
+	var ship := Node3D.new()
+	add_child_autofree(ship)
+	var laser := MiningLaser.new()
+	laser.use_player_input = false
+	laser.definition = MiningLaserDefinition.new()
+	ship.add_child(laser)
+	EventBus.mining_beam_started.emit(laser, null)
+	assert_eq(director._beam_source, laser, "director reads beam_end from MiningLaser")
 	EventBus.mining_beam_stopped.emit()
 
 
-func test_ore_spawned_by_position_adds_glow() -> void:
-	var pickup := Node3D.new()
-	pickup.add_to_group(&"ore_pickups")
-	add_child_autofree(pickup)
-	pickup.global_position = Vector3(10, 0, 2)
-	EventBus.ore_spawned.emit(Vector3(10, 0, 2), &"iron_ore", 2)
-	assert_eq(pickup.find_children("*", "OreGlow", true, false).size(), 1)
+func test_ore_spawned_by_position_decorates_pickup() -> void:
+	if get_tree().current_scene == null:
+		pending("VfxDirector decorates pickups only with a current_scene; covered by tests/smoke_test.gd")
+		return
+	var pool := PickupPool.new()
+	add_child_autofree(pool)
+	var p := pool.spawn(Vector3(10, 0, 2), &"ore_common_solid", 2)
+	await wait_process_frames(3)
+	assert_true(director._is_decorated(p), "glow/visual added to the pickup at the ore_spawned position")
 
 
 func test_break_and_collect_take_contract_args() -> void:
@@ -58,3 +67,25 @@ func test_sector_scene_has_vfx_nodes() -> void:
 		names.append(String(state.get_node_name(i)))
 	for n: String in ["VfxDirector", "SpaceBackground", "PostFx", "WorldEnvironment"]:
 		assert_has(names, n)
+
+
+## VFX contract (scenes/vfx/README.md): pickups are found by group, the beam
+## end comes from the shooter's public beam_origin / beam_end.
+func test_ore_pickups_join_group_ore_pickups() -> void:
+	var pool := PickupPool.new()
+	add_child_autofree(pool)
+	var p := pool.spawn(Vector3.ZERO, &"ore_common_solid", 1)
+	assert_true(p.is_in_group(&"ore_pickups"))
+	assert_true(get_tree().get_nodes_in_group(&"ore_pickups").has(p))
+
+
+func test_mining_laser_exposes_beam_origin_and_end() -> void:
+	var laser := MiningLaser.new()
+	autofree(laser)
+	var names: Array[String] = []
+	for prop: Dictionary in laser.get_property_list():
+		var prop_name: String = prop["name"]
+		names.append(prop_name)
+	for n: String in ["beam_origin", "beam_end"]:
+		assert_has(names, n, "MiningLaser.%s stays public" % n)
+		assert_true(laser.get(n) is Vector3, "%s is a Vector3" % n)

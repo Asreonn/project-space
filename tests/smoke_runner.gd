@@ -37,6 +37,7 @@ func _run() -> void:
 		var cb := _count.bind(sig)
 		EventBus.connect(sig, cb.unbind(argc) if argc > 0 else cb)
 	get_tree().root.add_child(_game)
+	get_tree().current_scene = _game
 	for i in 5:
 		await get_tree().physics_frame
 	if _game.assembler == null or _game.laser == null:
@@ -68,6 +69,12 @@ func _run() -> void:
 			if not await _mine(target):
 				return
 			broken += 1
+			if trips == 1 and broken == 1:
+				for i in 4:
+					await get_tree().process_frame
+				var director := _game.get_node(^"VfxDirector") as VfxDirector
+				var pickups := _game.pickups.get_pickups()
+				_check(not pickups.is_empty() and director._is_decorated(pickups[0]), "VFX decorated the ore pickups (group ore_pickups)")
 			if not await _collect():
 				return
 		laser.wants_fire = false
