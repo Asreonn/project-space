@@ -1,0 +1,155 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/vfx/mining_beam.gd" id="1_script"]
+[ext_resource type="Shader" path="res://assets/shaders/mining_beam.gdshader" id="2_beam"]
+[ext_resource type="Shader" path="res://assets/shaders/vfx_soft_particle.gdshader" id="3_soft"]
+[ext_resource type="Shader" path="res://assets/shaders/vfx_spark.gdshader" id="4_spark"]
+
+[sub_resource type="ShaderMaterial" id="Mat_beam"]
+resource_local_to_scene = true
+render_priority = 2
+shader = ExtResource("2_beam")
+shader_parameter/color_core = Vector3(1, 0.95, 0.85)
+shader_parameter/color_glow = Vector3(1, 0.55, 0.25)
+shader_parameter/energy = 2.0
+shader_parameter/scroll_speed = 9.0
+shader_parameter/pulse_spacing = 0.6
+shader_parameter/beam_length = 5.0
+shader_parameter/fade = 1.0
+shader_parameter/core_width = 0.22
+
+[sub_resource type="PlaneMesh" id="Mesh_beam"]
+size = Vector2(1, 1)
+
+[sub_resource type="ShaderMaterial" id="Mat_impact"]
+render_priority = 2
+shader = ExtResource("3_soft")
+shader_parameter/tint = Color(1, 0.62, 0.32, 1)
+shader_parameter/energy = 2.4
+shader_parameter/softness = 0.85
+shader_parameter/core = 0.6
+shader_parameter/billboard = true
+shader_parameter/pulse = false
+shader_parameter/pulse_speed = 3.0
+
+[sub_resource type="QuadMesh" id="Mesh_sprite"]
+size = Vector2(1, 1)
+
+[sub_resource type="ShaderMaterial" id="Mat_muzzle"]
+render_priority = 2
+shader = ExtResource("3_soft")
+shader_parameter/tint = Color(1, 0.75, 0.5, 1)
+shader_parameter/energy = 2.0
+shader_parameter/softness = 0.85
+shader_parameter/core = 0.5
+shader_parameter/billboard = true
+shader_parameter/pulse = false
+shader_parameter/pulse_speed = 3.0
+
+[sub_resource type="Gradient" id="Grad_spark"]
+offsets = PackedFloat32Array(0, 0.4, 1)
+colors = PackedColorArray(1, 0.95, 0.75, 1, 1, 0.6, 0.25, 1, 0.9, 0.3, 0.2, 0)
+
+[sub_resource type="GradientTexture1D" id="GradTex_spark"]
+gradient = SubResource("Grad_spark")
+width = 64
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_spark"]
+direction = Vector3(0, 0, -1)
+spread = 65.0
+initial_velocity_min = 2.0
+initial_velocity_max = 4.5
+gravity = Vector3(0, 0, 0)
+damping_min = 4.0
+damping_max = 7.0
+scale_min = 0.6
+scale_max = 1.2
+color_ramp = SubResource("GradTex_spark")
+
+[sub_resource type="ShaderMaterial" id="Mat_spark"]
+render_priority = 3
+shader = ExtResource("4_spark")
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/energy = 3.0
+
+[sub_resource type="QuadMesh" id="Mesh_spark"]
+material = SubResource("Mat_spark")
+size = Vector2(0.035, 0.22)
+
+[sub_resource type="Gradient" id="Grad_ember"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 0.7, 0.4, 0.9, 0.95, 0.45, 0.35, 0.6, 0.6, 0.3, 0.5, 0)
+
+[sub_resource type="GradientTexture1D" id="GradTex_ember"]
+gradient = SubResource("Grad_ember")
+width = 64
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_ember"]
+emission_shape = 1
+emission_sphere_radius = 0.08
+direction = Vector3(0, 1, 0)
+spread = 90.0
+initial_velocity_min = 0.2
+initial_velocity_max = 0.6
+gravity = Vector3(0, 0, 0)
+damping_min = 0.5
+damping_max = 1.0
+scale_min = 0.6
+scale_max = 1.3
+color_ramp = SubResource("GradTex_ember")
+
+[sub_resource type="ShaderMaterial" id="Mat_ember"]
+render_priority = 2
+shader = ExtResource("3_soft")
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/energy = 1.4
+shader_parameter/softness = 0.8
+shader_parameter/core = 0.2
+shader_parameter/billboard = true
+shader_parameter/pulse = false
+shader_parameter/pulse_speed = 3.0
+
+[sub_resource type="QuadMesh" id="Mesh_ember"]
+material = SubResource("Mat_ember")
+size = Vector2(0.12, 0.12)
+
+[node name="MiningBeam" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Beam" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+material_override = SubResource("Mat_beam")
+mesh = SubResource("Mesh_beam")
+
+[node name="Impact" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+material_override = SubResource("Mat_impact")
+mesh = SubResource("Mesh_sprite")
+
+[node name="Muzzle" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+material_override = SubResource("Mat_muzzle")
+mesh = SubResource("Mesh_sprite")
+
+[node name="Sparks" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+emitting = false
+amount = 24
+lifetime = 0.35
+randomness = 0.4
+local_coords = false
+transform_align = 3
+visibility_aabb = AABB(-4, -2, -4, 8, 4, 8)
+process_material = SubResource("PPM_spark")
+draw_pass_1 = SubResource("Mesh_spark")
+
+[node name="Embers" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+emitting = false
+amount = 10
+lifetime = 0.8
+randomness = 0.5
+local_coords = false
+visibility_aabb = AABB(-4, -2, -4, 8, 4, 8)
+process_material = SubResource("PPM_ember")
+draw_pass_1 = SubResource("Mesh_ember")

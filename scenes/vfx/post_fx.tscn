@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/post_fx.gdshader" id="1_post"]
+
+[sub_resource type="ShaderMaterial" id="Mat_post"]
+shader = ExtResource("1_post")
+shader_parameter/vignette_strength = 0.32
+shader_parameter/vignette_radius = 0.85
+shader_parameter/vignette_softness = 0.55
+shader_parameter/vignette_color = Color(0.06, 0.03, 0.1, 1)
+shader_parameter/aberration = 0.0012
+shader_parameter/grain = 0.0
+
+[node name="PostFx" type="CanvasLayer"]
+layer = -1
+
+[node name="Screen" type="ColorRect" parent="."]
+material = SubResource("Mat_post")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
