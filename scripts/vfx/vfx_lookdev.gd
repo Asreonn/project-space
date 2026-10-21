@@ -31,6 +31,7 @@ var _assembler: Node3D
 var _trail: EngineTrail
 var _asteroids: Array[Node3D] = []
 var _pickups: Array[Node3D] = []
+var _laser: VfxLookdevStubs.LaserStub
 var _events_done: Dictionary = {}
 var _frame: int = 0
 var _perf: Array[String] = []
@@ -98,6 +99,9 @@ func _build_ship() -> void:
 		_ship.add_child(_assembler)
 	_trail = (load("res://scenes/vfx/engine_trail.tscn") as PackedScene).instantiate() as EngineTrail
 	_ship.add_child(_trail)
+	_laser = VfxLookdevStubs.LaserStub.new()
+	_laser.name = "MiningLaser"
+	_ship.add_child(_laser)
 
 
 ## Primitive ship with the contract empties, used only if the real data is missing.
@@ -145,27 +149,62 @@ func _place_asteroid(i: int, pos: Vector3, s: float = 1.0) -> void:
 	a.rotation = Vector3(0.3 * i, 0.9 * i, 0.0)
 
 
-func _make_pickup(pos: Vector3, item: StringName) -> Node3D:
-	var p := MeshInstance3D.new()
-	var m := SphereMesh.new()
-	m.radius = 0.17
-	m.height = 0.3
-	m.radial_segments = 6
-	m.rings = 2
-	var mat := StandardMaterial3D.new()
-	var c := director.ore_color(item)
-	mat.albedo_color = c
-	mat.emission_enabled = true
-	mat.emission = c
-	mat.emission_energy_multiplier = 0.6
-	m.material = mat
-	p.mesh = m
+## with_model: the pickup already loads the Modeler's model (game path);
+## otherwise it carries the placeholder box (director swaps in the model).
+func _make_pickup(pos: Vector3, item: StringName, with_model: bool = false) -> Node3D:
+	var p := VfxLookdevStubs.PickupStub.new()
+	p.item_id = item
+	if with_model:
+		p.model_path = OrePickupVisual.MODEL_CRYSTAL if String(item).contains("crystal") else OrePickupVisual.MODEL_ORE
 	p.position = pos
 	add_child(p)
 	_pickups.append(p)
 	if bus != null:
-		bus.emit_signal(&"ore_spawned", p, item, 1)
+		bus.emit_signal(&"ore_spawned", p.global_position, item, 1)
 	return p
+
+
+## Radius (m) of an asteroid model from its mesh AABB.
+func _asteroid_radius(i: int) -> float:
+	var r := 1.0
+	for mi: Node in _asteroids[i].find_children("*", "MeshInstance3D", true, false):
+		var aabb := (mi as MeshInstance3D).get_aabb()
+		r = maxf(r, maxf(aabb.size.x, aabb.size.z) * 0.5)
+	return r * _asteroids[i].scale.x
+
+
+## Mimics MiningLaser: beam from FX_MiningOrigin to the asteroid surface (or range end).
+func _drive_beam(t: float, start_t: float, stop_t: float, ast: int, beam_range: float = 10.0) -> void:
+	if bus == null:
+		return
+	var o := _mining_origin()
+	if o == null:
+		return
+	var origin := o.global_position
+	var c := _asteroids[ast].global_position
+	var to := c - origin
+	to.y = 0.0
+	var dir := to.normalized()
+	var surface := origin + dir * maxf(to.length() - _asteroid_radius(ast) * 0.8, 0.2)
+	surface.y = 0.0
+	var in_range := origin.distance_to(surface) <= beam_range
+	_laser.beam_origin = origin
+	_laser.beam_end = surface if in_range else origin + dir * beam_range
+	if t >= start_t and t < stop_t:
+		if not _events_done.has("beam_on"):
+			_events_done["beam_on"] = true
+			_laser.firing = true
+			bus.emit_signal(&"mining_beam_started", o, null)
+		if in_range and t >= start_t + 0.15 and not _events_done.has("beam_target"):
+			_events_done["beam_target"] = true
+			bus.emit_signal(&"mining_beam_started", o, _asteroids[ast])
+		if in_range and t >= start_t + 0.4:
+			var ratio := clampf(1.0 - (t - start_t) / maxf(stop_t - start_t, 0.1), 0.05, 1.0)
+			bus.emit_signal(&"asteroid_damaged", _asteroids[ast], _laser.beam_end, ratio)
+	elif t >= stop_t and _events_done.has("beam_on") and not _events_done.has("beam_off"):
+		_events_done["beam_off"] = true
+		_laser.firing = false
+		bus.emit_signal(&"mining_beam_stopped")
 
 
 # --- Shots ----------------------------------------------------------------------
@@ -211,20 +250,20 @@ func _start_shot(s: StringName) -> void:
 		&"ore":
 			_ship.position = Vector3(0, 0, 1.2)
 			_place_asteroid(4, Vector3(-5.5, 0, -3.5), 0.8)
-			var items: Array[StringName] = [&"iron_ore", &"iron_ore", &"gold_ore", &"crystal", &"iron_ore"]
+			var items: Array[StringName] = [&"ore_common_solid", &"ore_common_solid", &"crystal_blue_solid", &"crystal_blue_solid", &"ore_common_solid"]
 			for i in 5:
 				var ang := -PI * 0.5 + (i - 2) * 0.5
 				_make_pickup(Vector3(cos(ang) * 2.6, 0, sin(ang) * 2.2 - 0.2), items[i])
 		&"overview", &"background":
 			if shot == &"overview":
-				_place_asteroid(0, Vector3(6, 0, -5))
-				_place_asteroid(1, Vector3(-9, 0, -6))
-				_place_asteroid(2, Vector3(-4, 0, 6))
-				_place_asteroid(3, Vector3(10, 0, 4))
-				_place_asteroid(4, Vector3(-14, 0, 2))
+				_place_asteroid(0, Vector3(4, 0, -4))
+				_place_asteroid(1, Vector3(-13, 0, -7))
+				_place_asteroid(2, Vector3(-11, 0, 7))
+				_place_asteroid(3, Vector3(9, 0, 5))
+				_place_asteroid(4, Vector3(-16, 0, 0))
 				_place_asteroid(5, Vector3(14, 0, -8))
 				for i in 3:
-					_make_pickup(Vector3(3.5 + i * 0.8, 0, -3.5 + i * 0.5), &"iron_ore")
+					_make_pickup(Vector3(-4.0 + i * 1.3, 0, 3.2 + (i % 2) * 0.9), &"crystal_blue_solid" if i == 1 else &"ore_common_solid", true)
 			else:
 				_ship.visible = false
 	_update_shot(0.0)
@@ -250,26 +289,14 @@ func _update_shot(delta: float) -> void:
 			_cam_at(_ship.position + Vector3(0, 0, -0.6), 6.5)
 		&"beam":
 			_trail.set_thrust(0.1, false)
-			_cam_at(Vector3(0, 0, 1.8), 9.0)
-			var o := _mining_origin()
-			var origin := o.global_position if o != null else _ship.position
-			var hit := Vector3(0.15 * sin(t * 2.0), 0.3, -0.4)
-			if t >= 0.2 and t < 2.7 and bus != null:
-				if not _events_done.has("beam"):
-					_events_done["beam"] = true
-					bus.emit_signal(&"mining_beam_started", origin, hit)
-				else:
-					bus.emit_signal(&"mining_beam_updated", origin, hit)
-				if t > 0.35:
-					bus.emit_signal(&"asteroid_damaged", _asteroids[0], 50.0, 100.0, hit)
-			elif t >= 2.7 and not _events_done.has("beam_off") and bus != null:
-				_events_done["beam_off"] = true
-				bus.emit_signal(&"mining_beam_stopped")
+			_ship.rotation.y = 0.12 * sin(t * 1.4)
+			_cam_at(Vector3(0, 0, 1.6), 9.0)
+			_drive_beam(t, 0.2, 2.7, 0)
 		&"break":
 			_cam_at(Vector3(0, 0, 0.5), 15.0)
-			_once("b1", t >= 0.2, func() -> void: _break(0, &"M"))
+			_once("b1", t >= 0.2, func() -> void: _break(0, 2.5))
 			_once("b2", t >= 0.6, func() -> void: _break(3, 1.2))
-			_once("b3", t >= 1.0, func() -> void: _break(1, &"L"))
+			_once("b3", t >= 1.0, func() -> void: _break(1, 4.0))
 		&"ore":
 			_cam_at(Vector3(0, 0, 0.6), 9.0)
 			_trail.set_thrust(0.15, false)
@@ -284,27 +311,24 @@ func _update_shot(delta: float) -> void:
 					p.position += to.normalized() * step
 					if to.length() < 0.35:
 						if bus != null:
-							bus.emit_signal(&"ore_collected", &"iron_ore" if i != 2 and i != 3 else (&"gold_ore" if i == 2 else &"crystal"), 1)
+							bus.emit_signal(&"ore_collected", (p as VfxLookdevStubs.PickupStub).item_id, 1, p.global_position)
 						p.queue_free()
 		&"overview":
-			var ang := t * 0.45
-			var r := 7.0
-			_ship.position = Vector3(cos(ang) * r - 2.0, 0, sin(ang) * r)
-			var vel := Vector3(-sin(ang), 0, cos(ang))
-			_ship.basis = Basis.looking_at(vel, Vector3.UP)
-			_trail.set_thrust(0.75, t > 2.5)
-			_cam_at(_ship.position, 30.0)
-			var o2 := _mining_origin()
-			var tgt := _asteroids[0].global_position + Vector3(-1.5, 0.4, 0.8)
-			if bus != null and o2 != null:
-				if not _events_done.has("beam"):
-					_events_done["beam"] = true
-					bus.emit_signal(&"mining_beam_started", o2.global_position, tgt)
-				bus.emit_signal(&"mining_beam_updated", o2.global_position, tgt)
-				bus.emit_signal(&"asteroid_damaged", _asteroids[0], 40.0, 100.0, tgt)
-			_once("ob", t >= 1.5, func() -> void: _break(3, &"S"))
+			# Strafe slowly on an arc ~7 m from the asteroid centre, nose on it.
+			var ang := 2.2 + 0.18 * sin(t * 0.8)
+			var center := _asteroids[0].global_position
+			_ship.position = center + Vector3(cos(ang), 0, sin(ang)) * 7.0
+			var face := center - _ship.position
+			_ship.basis = Basis.looking_at(face.normalized(), Vector3.UP)
+			_trail.set_thrust(0.3, false)
+			_cam_at(_ship.position + Vector3(1.5, 0, -1.5), 40.0, 18.0)
+			_drive_beam(t, 0.1, 99.0, 0)
+			_once("ob", t >= 1.5, func() -> void: _break(3, 1.2))
+			for p: Node3D in _pickups:
+				if is_instance_valid(p):
+					p.rotate_y(delta * 1.2)
 		&"background":
-			_cam_at(Vector3(t * 12.0 - 18.0, 0, -t * 4.0), 30.0)
+			_cam_at(Vector3(t * 12.0 - 18.0, 0, -t * 4.0), 40.0, 18.0)
 
 
 func _break(i: int, size: Variant) -> void:
@@ -319,11 +343,18 @@ func _once(key: String, cond: bool, f: Callable) -> void:
 		f.call()
 
 
-## Camera like the main scene: high, tilted ~10 degrees from straight down.
-func _cam_at(focus: Vector3, height: float) -> void:
-	var tilt := deg_to_rad(80.0)
-	cam.global_position = focus + Vector3(0, height, height / tan(tilt))
-	cam.rotation = Vector3(-tilt, 0, 0)
+## Camera like game_camera.gd: above the focus, tilted 10 degrees towards +Z.
+## ortho_size > 0 = orthographic (game default 18/24/32 m), else 35 deg perspective.
+func _cam_at(focus: Vector3, dist: float, ortho_size: float = 0.0) -> void:
+	var tilt := deg_to_rad(10.0)
+	if ortho_size > 0.0:
+		cam.projection = Camera3D.PROJECTION_ORTHOGONAL
+		cam.size = ortho_size
+	else:
+		cam.projection = Camera3D.PROJECTION_PERSPECTIVE
+		cam.fov = 35.0
+	cam.global_position = focus + Vector3(0.0, cos(tilt), sin(tilt)) * dist
+	cam.look_at(focus, Vector3.FORWARD)
 
 
 # --- Capture --------------------------------------------------------------------

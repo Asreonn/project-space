@@ -15,6 +15,8 @@ extends Node3D
 @export var depth: float = 120.0
 ## Extra coverage so a tilted camera never sees the quad edge.
 @export var coverage_margin: float = 1.8
+## Perspective FOV whose look an orthographic camera should match.
+@export var reference_fov: float = 35.0
 ## Cheaper nebula (3 noise octaves, no dust lanes) for low-end GPUs.
 @export var low_quality: bool = false:
 	set(value):
@@ -67,8 +69,11 @@ func _update(cam: Camera3D) -> void:
 	var cp := cam.global_position
 	var dist := cp.y + depth
 	var h: float
+	var k := 1.0
 	if cam.projection == Camera3D.PROJECTION_ORTHOGONAL:
 		h = cam.size
+		# Same on-screen star / cloud size as a perspective camera with reference_fov.
+		k = 2.0 * dist * tan(deg_to_rad(reference_fov) * 0.5) / maxf(cam.size, 0.01)
 	else:
 		h = 2.0 * dist * tan(deg_to_rad(cam.fov) * 0.5)
 	var vp := get_viewport().get_visible_rect().size
@@ -84,6 +89,10 @@ func _update(cam: Camera3D) -> void:
 	_sky.global_transform = Transform3D(Basis().scaled(Vector3(s, 1.0, s)), Vector3(center.x, -depth, center.z))
 	var sky_mat := _sky.material_override as ShaderMaterial
 	sky_mat.set_shader_parameter(&"camera_xz", Vector2(cp.x, cp.z))
+	sky_mat.set_shader_parameter(&"sample_scale", k)
 	if planet_enabled:
-		var pxz := Vector2(cp.x, cp.z) * planet_parallax + planet_offset
-		_planet.global_transform = Transform3D(Basis().scaled(Vector3(planet_size, 1.0, planet_size)), Vector3(pxz.x, -depth * 0.8, pxz.y))
+		# Perspective: anchored to the camera (unchanged look). Ortho: to the view centre.
+		var cxz := Vector2(cp.x, cp.z) if is_equal_approx(k, 1.0) else Vector2(center.x, center.z)
+		var pxz := cxz + (Vector2(cp.x, cp.z) * (planet_parallax - 1.0) + planet_offset) / k
+		var ps := planet_size / k
+		_planet.global_transform = Transform3D(Basis().scaled(Vector3(ps, 1.0, ps)), Vector3(pxz.x, -depth * 0.8, pxz.y))

@@ -9,14 +9,18 @@
 resource_local_to_scene = true
 render_priority = 2
 shader = ExtResource("2_beam")
-shader_parameter/color_core = Vector3(1, 0.95, 0.85)
-shader_parameter/color_glow = Vector3(1, 0.55, 0.25)
-shader_parameter/energy = 2.0
-shader_parameter/scroll_speed = 9.0
-shader_parameter/pulse_spacing = 0.6
+shader_parameter/color_core = Vector3(0.15, 0.75, 1)
+shader_parameter/color_glow = Vector3(1, 0.52, 0.22)
+shader_parameter/core_energy = 1.5
+shader_parameter/glow_energy = 1.8
+shader_parameter/scroll_speed = 6.0
+shader_parameter/ripple_spacing = 0.9
+shader_parameter/ripple_amount = 0.25
+shader_parameter/pulse_speed = 5.0
+shader_parameter/pulse_amount = 0.15
 shader_parameter/beam_length = 5.0
 shader_parameter/fade = 1.0
-shader_parameter/core_width = 0.22
+shader_parameter/core_width = 0.3
 
 [sub_resource type="PlaneMesh" id="Mesh_beam"]
 size = Vector2(1, 1)
@@ -24,8 +28,8 @@ size = Vector2(1, 1)
 [sub_resource type="ShaderMaterial" id="Mat_impact"]
 render_priority = 2
 shader = ExtResource("3_soft")
-shader_parameter/tint = Color(1, 0.62, 0.32, 1)
-shader_parameter/energy = 2.4
+shader_parameter/tint = Color(1, 0.6, 0.28, 1)
+shader_parameter/energy = 2.6
 shader_parameter/softness = 0.85
 shader_parameter/core = 0.6
 shader_parameter/billboard = true
@@ -38,8 +42,8 @@ size = Vector2(1, 1)
 [sub_resource type="ShaderMaterial" id="Mat_muzzle"]
 render_priority = 2
 shader = ExtResource("3_soft")
-shader_parameter/tint = Color(1, 0.75, 0.5, 1)
-shader_parameter/energy = 2.0
+shader_parameter/tint = Color(0.6, 0.95, 1, 1)
+shader_parameter/energy = 2.2
 shader_parameter/softness = 0.85
 shader_parameter/core = 0.5
 shader_parameter/billboard = true
@@ -57,8 +61,8 @@ width = 64
 [sub_resource type="ParticleProcessMaterial" id="PPM_spark"]
 direction = Vector3(0, 0, -1)
 spread = 65.0
-initial_velocity_min = 2.0
-initial_velocity_max = 4.5
+initial_velocity_min = 1.8
+initial_velocity_max = 3.8
 gravity = Vector3(0, 0, 0)
 damping_min = 4.0
 damping_max = 7.0
