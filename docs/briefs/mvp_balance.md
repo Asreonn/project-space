@@ -1,8 +1,9 @@
 # MVP Denge Sayıları ve His (Gameplay Designer)
 
-**Sahip:** Gameplay Designer · **Durum:** v0.1, 2026-10-22 · **Bütün sayılar `balance_prototype`** (GAME_PLAN §15.3).
+**Sahip:** Gameplay Designer · **Durum:** v0.2, 2026-10-22 (L3 maliyetleri düşürüldü, F9 debug kredisi) · **Bütün sayılar `balance_prototype`** (GAME_PLAN §15.3).
 **Girdi:** [`mvp.md`](mvp.md) v1.0 (başlangıç değerleri), D-006, D-009 (gemi 1,84 m), D-011 (yalnız kredi).
-**Branch:** `gameplay/mvp-loop` (taban `eng/mvp-integration` @ `eb01e01`).
+**Branch:** `gameplay/mvp-loop` (taban `eng/mvp-integration` @ `20d6e66`).
+**PS Game Designer onayı:** ilk yükseltme ~4:10, L2 320–360 kr, ilk alım Head L2, seyir 12 m/s, Engine L3 14,4 m/s. v0.2 isteği: ilk L3 ≤ 10:00 (medyan), tam L3 ~20–25 dk.
 
 Döngü: uç → asteroidi ışınla kaz → kırılır, cevher saçılır → mıknatısla topla → istasyonda sat → parçayı L1→L2→L3 yükselt.
 
@@ -23,17 +24,19 @@ Değerler **mutlak** (hull base + o seviyenin modifier'ı). L3 = `upgrade_caps` 
 
 | Parça | Stat | L1 | L2 | L3 (=cap) | L2 maliyeti | L3 maliyeti |
 |---|---|---|---|---|---|---|
-| **Head** | `mining_power` (10 = ×1,0) | 10 | **13 (+%30)** | 16 (+%60) | **320 kr** | 800 kr |
+| **Head** | `mining_power` (10 = ×1,0) | 10 | **13 (+%30)** | 16 (+%60) | **320 kr** | **360 kr** |
 | Head | `damage` (MVP'de okunmaz) | 10 | 12 | 14 | | |
-| **Body** | `carry_capacity` = `storage_solid` (u) | 30 | 40 (+%33) | 50 | 360 kr | 850 kr |
+| **Body** | `carry_capacity` = `storage_solid` (u) | 30 | 40 (+%33) | 50 | 360 kr | 420 kr |
 | Body | `hull` (MVP'de okunmaz) | 100 | 130 | 160 | | |
-| **Wings** | `maneuver_speed` (°/s) | 270 | 300 | 330 | 360 kr | 750 kr |
-| **Engine** | `flying_speed` (m/s) | 12,0 | 13,2 | 14,4 | 340 kr | 800 kr |
-| Toplam | | | | | **1380 kr** | **3200 kr** → **4580 kr** |
+| **Wings** | `maneuver_speed` (°/s) | 270 | 300 | 330 | 360 kr | 380 kr |
+| **Engine** | `flying_speed` (m/s) | 12,0 | 13,2 | 14,4 | 340 kr | 400 kr |
+| Toplam | | | | | **1380 kr** | **1560 kr** → **2940 kr** (v0.1: 4580) |
 
 - Kütle: frame 0,5 + Head 0,4 + Body 1,6 + Wings 0,5 + Engine 0,7 = **3,7 t**; lazer 0,2 t → `reference_mass` 3,9 t. Cevher 0,03 t/u (kristal 0,02): dolu L3 ambar ≈ +1,5 t → ivme ≈ ×0,8.
 - Hull base'te MVP'de okunmayan alanlar duruyor (`fuel_*`, `energy_capacity` 50, `heat_capacity` 100, `radar_range` 80 …; validator kural 7 fuel ister).
 - **Head L2 bilerek en ucuz L2:** ilk alınan yükseltme hissedilen olsun (lazer 14 → 18,2 HP/s; M asteroid 6,7 s → 5,2 s).
+- **Head L3 (360 kr) bilerek en ucuz L3:** "ekonomi önce" oyuncusu Head L2 → Body L2 → Head L3 sırasıyla ilk L3'ü ~9:50'de alır. L3 maliyeti her parçada L2'den yüksek kalır (Head 320 → 360).
+- **Debug: F9 = +500 kr** (`debug_add_credits` aksiyonu, `scripts/debug/debug_cheats.gd`, `player_ship.tscn` altında `DebugCheats`). `GameState.add_credits(500)` çağırır; yalnız `OS.is_debug_build()` true iken çalışır, release export'ta düğüm kendini siler. Tempo ölçümlerine dahil değil.
 
 ## 2. Uçuş ve kamera (gemi 1,84 m)
 
@@ -46,6 +49,7 @@ Değerler **mutlak** (hull base + o seviyenin modifier'ı). L3 = `upgrade_caps` 
 | 180° dönüş | 0,72 s | `maneuver_speed` 270, `turn_gain` 10, `turn_response` 26 |
 | Drift (Space+W), 1 s sonra korunan yanal hız | %67 | `drift_grip_mult` 0,08 |
 | Çarpışma hasarı | 0 | MVP'de hasar yok |
+| Motor izi (VFX) | `Visual/EngineTrail` (`scenes/vfx/engine_trail.tscn`), her physics frame `set_thrust(yatay hız / flying_speed, boosting)` | 0..1'e kırpılır; boost görünümü ayrı bayrak |
 | Kamera | ortho, 10° eğik, `ortho_sizes` [18, 24, 32], varsayılan 24 | `look_ahead_max` 6 → 3,5 m, `aim_offset_max` 4 → 2,5 m, `boost_zoom_out` 0,12 → 0,2 |
 
 **Kamera okunurluğu (16:9, `flight_metrics.gd`):**
@@ -90,65 +94,76 @@ Değerler **mutlak** (hull base + o seviyenin modifier'ı). L3 = `upgrade_caps` 
 
 ## 4. Tempo (sim çıktısı)
 
-`godot --headless --path . -s res://tests/tools/run_mvp_balance_sim.gd` (25 seed, deterministik). Varsayımlar sim dosyasının başında: uzun yolda ortalama hız ×0,8, kısa sıçramada ×0,5, isabet %85, kırılma sonrası toplama 1,5 s + pickup başına 0,15 s, dock+satış 5 s, alım başına 3 s. Yükseltme sırası: önce bütün L2'ler (Head → Body → Engine → Wings), sonra L3'ler, alınabilen ilk.
+`godot --headless --path . -s res://tests/tools/run_mvp_balance_sim.gd` (25 seed, deterministik). Varsayımlar sim dosyasının başında: uzun yolda ortalama hız ×0,8, kısa sıçramada ×0,5, isabet %85, kırılma sonrası toplama 1,5 s + pickup başına 0,15 s, dock+satış 5 s, alım başına 3 s.
+**Referans alım planı (v0.2, "ekonomi önce"):** Head L2 → Body L2 → **Head L3** → Engine L2 → Wings L2 → Body L3 → Engine L3 → Wings L3. Sim sıradaki adım için para biriktirir, yetince alır (v0.1'de önce bütün L2'ler alınıyordu; o planla ilk L3 en erken ~12 dk olur).
 
 ### 4.1 Hedef kontrolü
 
 | Ölçüt | min | medyan | max | Hedef |
 |---|---|---|---|---|
 | İlk yükseltme (Head L2) | 2:48 | **4:10** | 4:42 | 3–5 dk (~4) |
-| Bütün parçalar L3 | 32:02 | **34:57** | 37:13 | ~30 dk (brief), 30–60 (görev) |
+| İlk L3 (herhangi parça, Head) | 8:36 | **9:47** | 10:49 | medyan ≤ 10:00, max ≤ 11:00 |
+| Bütün parçalar L3 | 20:27 | **22:57** | 24:57 | 20–25 dk |
 
-### 4.2 Medyan oyun: ilk turlar ve yükseltme zaman çizelgesi
+Test eşikleri (`run_mvp_balance_sim.gd` ve `test_mvp_balance_data.gd`): ilk yükseltme medyanı 180–300 s, ilk L3 medyanı ≤ 600 s (en yavaş seed > 660 s ise uyarı), tam L3 medyanı 1200–1500 s.
+
+### 4.2 Medyan oyun (tam L3'e göre medyan seed): ilk turlar ve zaman çizelgesi
 
 | Tur | Başlangıç | Süre | Uçuş | Kazma+toplama | Dock | Asteroid | Birim | Kredi | Seviyeler |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | 0:00 | 89 s | 34 s | 50 s | 5 s | 8 | 30 | 152 | H1 B1 W1 E1 |
-| 2 | 1:29 | 80 s | 25 s | 50 s | 5 s | 5 | 30 | 152 | H1 B1 W1 E1 |
-| 3 | 2:49 | 98 s | 31 s | 59 s | 8 s | 6 | 30 | 192 | H1 B1 W1 E1 |
-| 4 | 4:27 | 87 s | 31 s | 48 s | 8 s | 6 | 30 | 208 | H2 B1 W1 E1 |
-| 5 | 5:54 | 82 s | 31 s | 46 s | 5 s | 6 | 39 | 156 | H2 B2 W1 E1 |
+| 1 | 0:00 | 82 s | 32 s | 45 s | 5 s | 7 | 30 | 120 | H1 B1 W1 E1 |
+| 2 | 1:22 | 88 s | 31 s | 53 s | 5 s | 6 | 30 | 152 | H1 B1 W1 E1 |
+| 3 | 2:50 | 89 s | 29 s | 52 s | 8 s | 5 | 29 | 204 | H1 B1 W1 E1 |
+| 4 | 4:19 | 79 s | 29 s | 45 s | 5 s | 5 | 30 | 152 | H2 B1 W1 E1 |
+| 5 | 5:37 | 82 s | 31 s | 44 s | 8 s | 6 | 30 | 168 | H2 B1 W1 E1 |
+| 6 | 7:00 | 98 s | 35 s | 58 s | 5 s | 8 | 40 | 216 | H2 B2 W1 E1 |
+| 7 | 8:38 | 102 s | 34 s | 59 s | 8 s | 7 | 40 | 192 | H2 B2 W1 E1 |
+| 8 | 10:19 | 91 s | 34 s | 50 s | 8 s | 7 | 40 | 248 | H3 B2 W1 E1 |
 
 | # | Parça | Seviye | Maliyet | Zaman |
 |---|---|---|---|---|
-| 1 | Head | L2 | 320 | **4:27** |
-| 2 | Body | L2 | 360 | 5:54 |
-| 3 | Engine | L2 | 340 | 8:51 |
-| 4 | Wings | L2 | 360 | 11:41 |
-| 5 | Head | L3 | 800 | 18:11 |
-| 6 | Engine | L3 | 800 | 24:17 |
-| 7 | Body | L3 | 850 | 30:12 |
-| 8 | Wings | L3 | 750 | 34:57 |
+| 1 | Head | L2 | 320 | **4:19** |
+| 2 | Body | L2 | 360 | 7:00 |
+| 3 | Head | L3 | 360 | **10:19** |
+| 4 | Engine | L2 | 340 | 11:50 |
+| 5 | Wings | L2 | 360 | 14:51 |
+| 6 | Body | L3 | 420 | 17:57 |
+| 7 | Engine | L3 | 400 | 21:18 |
+| 8 | Wings | L3 | 380 | **22:57** |
 
-Tur ≈ 80–100 s, L1'de 30 u ≈ 150–200 kr; L3 ambarla 50 u ≈ 230–250 kr.
+Bu seed ilk L3'te medyanın biraz arkasında (10:19); 25 seed'in ilk L3 medyanı 9:47. Tur ≈ 80–100 s, L1'de 30 u ≈ 120–200 kr; Body L2 sonrası 40 u ≈ 190–250 kr.
 
 ### 4.3 Seyir hızı taraması (L1 `flying_speed` değiştirilerek, medyan)
 
-| L1 m/s | L1 tur | İlk yükseltme | Bütün L2 | Bütün L3 |
-|---|---|---|---|---|
-| 10 | 89 s | 4:07 | 12:51 | 36:34 |
-| **12** | 85 s | 4:10 | 12:13 | 34:57 |
-| 14 | 83 s | 4:01 | 12:04 | 33:59 |
-| 16 | 81 s | 3:40 | 11:35 | 33:14 |
+| L1 m/s | L1 tur | İlk yükseltme | İlk L3 | Bütün L2 | Bütün L3 |
+|---|---|---|---|---|---|
+| 10 | 89 s | 4:07 | 10:27 | 15:31 | 24:11 |
+| **12** | 85 s | 4:10 | 9:47 | 14:49 | 22:57 |
+| 14 | 83 s | 4:01 | 9:37 | 14:07 | 22:18 |
+| 16 | 81 s | 3:40 | 9:19 | 13:55 | 22:08 |
 
-### 4.4 Brief'in başlangıç değerlerinden neden ayrıldım
+### 4.4 Brief'in başlangıç değerlerinden ve v0.1'den neden ayrıldım
 
-Brief değerleriyle (L2 120 kr, L3 300 kr, Head 10/12/14) sim: **ilk yükseltme 1:28, bütün L3 14:00** — iki hedef de tutmuyor. Brief'teki "ilk tur 3–4 dk" varsayımı 120 m'lik sektörde gerçekleşmiyor: bir tur ~1,5 dk, 30 u dolu ambar ~150 kr (sektörde yalnız 3 damarlı asteroid var, kristal payı ~%10, brief ~%33 varsaymış).
+| Sürüm | L2 | L3 | İlk yükseltme | İlk L3 | Tam L3 |
+|---|---|---|---|---|---|
+| Brief başlangıcı | 120 | 300 | 1:28 | — | 14:00 |
+| v0.1 | 320–360 | 750–850 | 4:10 | ~18 | 34:57 |
+| **v0.2 (şimdi)** | 320–360 | **360–420** | **4:10** | **9:47** | **22:57** |
 
-| Değişiklik | Brief | Bu branch | Neden |
-|---|---|---|---|
-| L2 maliyeti | 120 | 320–360 | İlk yükseltme 1:28 → 4:10 |
-| L3 maliyeti | 300 | 750–850 | Bütün L3 14 → 35 dk |
-| Head `mining_power` | 10/12/14 | 10/13/16 | İlk yükseltme hissedilsin (+%30, görev şartı) |
-| Asteroid HP, cevher fiyatı, kargo, Engine, Wings | brief | **aynı** | Kırma süreleri (S 2,6 s, M 6,8 s) iyi hissediyor; ekonomiyi maliyetle ayarlamak his statlarını bozmuyor |
+- Brief maliyetleriyle döngü çok hızlı: 120 m'lik sektörde bir tur ~1,5 dk, 30 u dolu ambar ~150 kr (sektörde 3 damarlı asteroid, kristal payı ~%10; brief ~%33 varsaymıştı).
+- v0.1 ilk yükseltmeyi tutturdu ama L3'ler uzun bir öğütmeye dönüşüyordu (Game Designer: ilk L3 ≤ 10 dk, tam L3 20–25 dk).
+- v0.2: L2'ler ve ilk yükseltme aynı; L3'ler L2'nin hemen üstünde. Head L3 en ucuz, ki ilk L3 hissedilen parça olsun (lazer 18,2 → 22,4 HP/s).
+- Asteroid HP, cevher fiyatı, kargo, Engine, Wings brief'teki gibi. Head 10/13/16 (brief 10/12/14), ilk yükseltme hissedilsin diye.
 
 ## 5. Hangi semptomda hangi düğme
 
 | Semptom | Önce | Sonra |
 |---|---|---|
 | İlk yükseltme geç (> 5 dk) | Head L2 maliyeti ↓ (320 → 260) | cevher fiyatı ↑, `ore_units` ↑ |
+| İlk L3 geç (> 10 dk) | Body L2'yi plandan sonraya at (Head L2 → Head L3 ~7 dk) | Head L3 ↓ (alt sınır: Head L2 + 1) |
 | İlk yükseltme erken (< 3 dk) | Head L2 maliyeti ↑ | — |
 | L3'e çıkmak sıkıcı / uzun | L3 maliyetleri ↓ | kristal varyant sayısı ↑ (2+1 → 3+2) |
+| Demo/test için para lazım | F9 (+500 kr, yalnız debug build) | — |
 | Kazmak yavaş / sıkıcı | `node_damage_per_s` 14 ↑ | asteroid `max_hp` ↓ |
 | Asteroid "pop" etmiyor, anında kırılıyor | S `max_hp` 30 ↑ | `spin_up` ↑ |
 | Tur çok uzun | `ring_min/max_radius` ↓ | Body `carry_capacity` ↓ |
@@ -160,20 +175,22 @@ Brief değerleriyle (L2 120 kr, L3 300 kr, Head 10/12/14) sim: **ilk yükseltme 
 | Boost hissiz | `boost_speed_mult` ↑ | `boost_zoom_out` ↑ |
 | Kazarken hedef ekran dışında | `beam_range` ↓ veya zoom ↑ | `aim_offset_max` ↑ |
 
-## 6. Açık sorular
+## 6. Açık sorular ve entegrasyon notları
+
+**Kararlaştırılanlar (PS Godot Engineer, 2026-10-22):** `scripts/mining/mining_laser.gd` Gameplay'de kalır; `ShipAssembler` `Visual/ShipAssembler` altında kalır, `MvpGame` uyarlanır; `MiningLaserDefinition` Engineer'ın (kopyamız branch'ten çıkarıldı).
+
+**EventBus imzaları (kod esas, `scripts/core/event_bus.gd` @ `20d6e66`):**
+- `mining_beam_started(origin: Node3D, target: Node3D)`: origin = `FX_MiningOrigin` düğümü, target = asteroid (isabet yoksa `null`). Işın yeni bir asteroide kilitlendiğinde tekrar yayılır. **Not:** `mvp.md` (`30dc05d`) bu sinyali `Vector3, Vector3` diye düzeltti ama commit'li kod `Node3D, Node3D`. VFX director her ikisini kabul ediyor (`Variant`). `mvp.md` koda göre geri düzeltilmeli.
+- `mining_beam_updated(origin: Node3D, end: Vector3)`: Engineer'ın WIP'inde, henüz commit'li değil. Lazer sinyal varsa her physics frame yayar (`has_signal` korumalı); test sinyal gelene kadar pending.
+- `asteroid_destroyed(position: Vector3, radius: float)`: Engineer güncelledi; lazer ve test stub'ı uyumlu.
+- `station_panel_toggled(is_open)` gelince gemi girdiyi kesip frenliyor, lazer susuyor. `ship_stats_changed(stats)` gemiye uygulanıyor.
 
 **PS Game Designer:**
-1. Maliyetler brief'in ~2,7 katı (§4.4). Kabul mü, yoksa sektörü/turu uzatmayı mı tercih edersin (ör. halka 40–110 m)?
-2. Brief'te Head 10/12/14; ben 10/13/16 yaptım (ilk yükseltme hissedilsin). Uygun mu?
-3. Damarlı asteroid tek cevher: kristal-only varyant mı (benim öneri), yoksa iki cevherli drop mu (şema değişikliği)?
-4. Kontrat §2 "L2 yalnız katı kaynak" D-011 ile askıda; `ship_data_model.md`'ye MVP notu düşülmeli.
+1. Damarlı asteroid tek cevher: kristal-only varyant mı (benim öneri), yoksa iki cevherli drop mu (şema değişikliği)?
+2. Referans alım planı Head L2 → Body L2 → Head L3. Oyuncu tüm L2'leri önce alırsa ilk L3 ~15 dk'ya kayar; istasyon paneli Head L3'ü öne çıkarabilir (UI notu).
 
 **PS Godot Engineer:**
-1. `scripts/mining/mining_laser.gd` brief'e göre Gameplay'in; senin WIP'inle **aynı API** (`setup`, `set_stats`, `mine`, `beam_origin/end`, `hit_asteroid`, `firing_changed`) ile yazdım. Asteroid'e `Asteroid` tipi yerine `apply_mining_damage()` üzerinden duck typing ile bağlanıyor; böylece senin `asteroid.gd`'n gelmeden derleniyor. Merge'de seninkini düşür ya da farkları söyle.
-2. `scripts/data/mining_laser_definition.gd` senin WIP dosyanın **birebir kopyası** (lazer `.tres`'i için). Commit'lediğinde benimkini sil.
-3. `player_ship.tscn`'de `ShipAssembler` brief'e göre `Visual/ShipAssembler` altında; `MvpGame` şu an `$Ship/ShipAssembler` bekliyor. Gemi `hull_definition` verilirse assembler'ı kendisi kurar; `MvpGame` kuruyorsa boş bırak.
-4. EventBus: brief `mining_beam_started(origin: Node3D, target: Node3D)` diyor, commit'li kod `(origin: Vector3, target: Vector3)`. Kodu esas aldım; brief düzeltilmeli.
-5. `dock_panel_toggled(open)` gelince gemi girdiyi kesip frenliyor (`input_locked`), lazer de susuyor.
-6. Şema: `authored_up_to_level` (hull + parça, MVP = 3) henüz sınıflarda yok; validator MVP modu (D-011) yok. `ShipStatsResolver` LOWER_IS_BETTER (mass, fuel_rate) uygulamıyor; o yüzden bu statlara cap koymadım.
-7. `tests/tools/lint_strict.sh` `--check-only -s` ile çalıştığı için autoload'ları (EventBus) tanımıyor: EventBus kullanan her script "Identifier not found" verir (seninki de verecek). Önerim: lint'i autoload'lar yüklendikten sonra script'leri `load()` eden bir runner ile yapmak. Bunun dışında yeni script'lerimde strict uyarı yok.
-8. İki M1 testini MVP verisine uydurdum (ayrı commit): `test_empty_l2_l3_do_not_change_base` artık sentetik hull kullanıyor, `test_full_content_mode_flags_missing_l2_l3` L2/L3'ü kendisi boşaltıyor; yeni test: starter tam içerik (L1–L3, modeller) validator'dan geçiyor.
+1. `mining_beam_updated`'ı commit'leyince WIP'teki `mining_laser.gd` satırını düşür: emit bu branch'te zaten var (aynı argümanlar).
+2. Ekonomi önerisi (`data/balance/mvp_economy_proposal.json`) ile `data/` altındaki asteroid/cevher `.tres`'leri aynı değerlerde tutulmalı (sim JSON'u okur).
+3. `MvpGame` gemiyi `player_ship.tscn`'den kurarken `EngineTrail` ve `DebugCheats` sahnede hazır; ayrıca eklemeye gerek yok.
+4. `project.godot`'a `debug_add_credits` (F9) aksiyonu eklendi.
