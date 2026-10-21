@@ -1,0 +1,35 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/vfx/space_background.gd" id="1_script"]
+[ext_resource type="Resource" path="res://assets/vfx/palettes/space_palette_starter.tres" id="2_palette"]
+[ext_resource type="Shader" path="res://assets/shaders/space_background.gdshader" id="3_sky"]
+[ext_resource type="Shader" path="res://assets/shaders/planet.gdshader" id="4_planet"]
+
+[sub_resource type="ShaderMaterial" id="Mat_sky"]
+resource_local_to_scene = true
+render_priority = -100
+shader = ExtResource("3_sky")
+
+[sub_resource type="PlaneMesh" id="Mesh_plane"]
+size = Vector2(1, 1)
+
+[sub_resource type="ShaderMaterial" id="Mat_planet"]
+resource_local_to_scene = true
+render_priority = -90
+shader = ExtResource("4_planet")
+
+[node name="SpaceBackground" type="Node3D"]
+script = ExtResource("1_script")
+palette = ExtResource("2_palette")
+
+[node name="Sky" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+gi_mode = 0
+material_override = SubResource("Mat_sky")
+mesh = SubResource("Mesh_plane")
+
+[node name="Planet" type="MeshInstance3D" parent="."]
+cast_shadow = 0
+gi_mode = 0
+material_override = SubResource("Mat_planet")
+mesh = SubResource("Mesh_plane")
