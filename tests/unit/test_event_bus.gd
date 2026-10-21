@@ -1,5 +1,5 @@
 extends GutTest
-## EventBus autoload exists and its signals match the M1 contract.
+## EventBus autoload exists and its signals match the M1 + MVP list.
 
 const EXPECTED_ARGS: Dictionary[String, int] = {
 	"hull_changed": 2,
@@ -11,6 +11,21 @@ const EXPECTED_ARGS: Dictionary[String, int] = {
 	"cargo_rejected": 3,
 	"player_died": 0,
 	"player_respawned": 0,
+	"cargo_changed": 2,
+	"mining_beam_started": 2,
+	"mining_beam_updated": 2,
+	"mining_beam_stopped": 0,
+	"asteroid_damaged": 4,
+	"asteroid_destroyed": 2,
+	"ore_spawned": 3,
+	"ore_collected": 2,
+	"credits_changed": 2,
+	"cargo_sold": 2,
+	"dock_entered": 0,
+	"dock_exited": 0,
+	"dock_panel_toggled": 1,
+	"part_upgraded": 2,
+	"upgrade_failed": 1,
 }
 
 
