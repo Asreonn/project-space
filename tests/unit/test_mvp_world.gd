@@ -51,7 +51,7 @@ func test_asteroid_breaks_and_drops_all_ore() -> void:
 	assert_true(a.is_broken)
 	assert_false(a.apply_mining_damage(1.0, Vector3.ZERO), "no damage after break")
 	assert_signal_emitted(EventBus, "asteroid_damaged")
-	assert_signal_emitted_with_parameters(EventBus, "asteroid_destroyed", [a.global_position, def.get_size_name()])
+	assert_signal_emitted_with_parameters(EventBus, "asteroid_destroyed", [a.global_position, a.radius])
 	assert_signal_emitted(EventBus, "ore_spawned")
 	assert_eq(pool.get_total_units(def.ore.id), def.ore_units_max)
 
@@ -134,3 +134,40 @@ func test_station_dock_signals_and_game_state() -> void:
 	station.set_docked(false)
 	assert_signal_emitted(EventBus, "dock_exited")
 	assert_false(GameState.docked)
+
+
+func test_station_uses_model_empties_and_hub_collision() -> void:
+	var station := (load(STATION_SCENE) as PackedScene).instantiate() as StationDock
+	add_child_autofree(station)
+	if not ResourceLoader.exists(StationDock.MODEL_PATH):
+		pass_test("station model not delivered")
+		return
+	assert_false(station.is_placeholder)
+	assert_almost_eq(station.dock_area.position, Vector3.ZERO, Vector3.ONE * 0.01, "dock area on Dock_Center")
+	var area_shape := (station.dock_area.get_child(0) as CollisionShape3D).shape as CylinderShape3D
+	assert_almost_eq(area_shape.radius, 5.0, 0.001)
+	var hub := station.get_node(^"Hub").get_child(0) as CollisionShape3D
+	assert_true(hub.shape is ConvexPolygonShape3D, "hub hull from station_01_collision.glb")
+	assert_almost_eq(station.get_dock_pad_position(), Vector3(0, 0, -3), Vector3.ONE * 0.05)
+	assert_almost_eq(station.get_entrance_position(), Vector3(0, 0, -6.5), Vector3.ONE * 0.05)
+
+
+func test_asteroid_model_collision_and_sockets() -> void:
+	var def := sector.asteroid_types[1] # rock M
+	var a := _asteroid(def)
+	if a.model_path == "":
+		pass_test("asteroid models not delivered")
+		a.queue_free()
+		return
+	var col := a.get_node(^"CollisionShape3D") as CollisionShape3D
+	assert_true(col.shape is ConvexPolygonShape3D, "convex hull from *_collision.glb")
+	assert_gt(ModelUtil.find_markers(a.get_node(^"Visual"), "OreSocket_").size(), 0)
+	a.queue_free()
+
+
+func test_pickup_uses_resource_model() -> void:
+	var p := pool.spawn(Vector3.ZERO, &"crystal_blue_solid", 1)
+	var def := GameState.get_resource(&"crystal_blue_solid")
+	if ResourceLoader.exists(def.pickup_scene_path):
+		assert_eq(p.model_path, def.pickup_scene_path)
+		assert_false(p.get_node(^"Visual") is MeshInstance3D and (p.get_node(^"Visual") as MeshInstance3D).mesh is BoxMesh)

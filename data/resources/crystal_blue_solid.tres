@@ -14,4 +14,5 @@ volume_per_unit = 1.0
 mass_per_unit = 0.02
 sell_price = 12
 pickup_color = Color(0.35, 0.7, 1, 1)
+pickup_scene_path = "res://assets/models/pickups/crystal_pickup_01.glb"
 balance_prototype = true

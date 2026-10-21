@@ -7,6 +7,7 @@ extends StaticBody3D
 signal broken(asteroid: StubAsteroid)
 
 var size: StringName = &"S"
+var radius: float = 1.0
 var max_hp: float = 30.0
 var hp: float = 30.0
 var ore: StringName = &"ore_common_solid"
@@ -26,7 +27,8 @@ static func from_proposal(entry: Dictionary) -> StubAsteroid:
 	a.collision_mask = 0
 	var shape := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
-	sphere.radius = _f(entry["radius"])
+	a.radius = _f(entry["radius"])
+	sphere.radius = a.radius
 	shape.shape = sphere
 	a.add_child(shape)
 	return a
@@ -40,7 +42,7 @@ func apply_mining_damage(amount: float, _hit_point: Vector3) -> bool:
 	if hp <= 0.0:
 		is_broken = true
 		collision_layer = 0
-		EventBus.asteroid_destroyed.emit(global_position, size)
+		EventBus.asteroid_destroyed.emit(global_position, radius)
 		broken.emit(self)
 	return true
 

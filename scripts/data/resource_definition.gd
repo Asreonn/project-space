@@ -13,6 +13,8 @@ enum Phase { SOLID, LIQUID, GAS }
 @export var mass_per_unit: float = 0.1 ## t per unit
 @export var sell_price: int = 0 ## credits per unit at the station (MVP)
 @export var pickup_color: Color = Color(0.85, 0.7, 0.45) ## placeholder pickup tint
+## Modeler pickup model (assets/models/pickups/*.glb); empty / missing = tinted cube.
+@export_file("*.glb", "*.tscn") var pickup_scene_path: String = ""
 @export var balance_prototype: bool = true
 
 

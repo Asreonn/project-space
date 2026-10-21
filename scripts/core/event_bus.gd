@@ -34,9 +34,9 @@ signal mining_beam_stopped()
 ## Emitted every physics frame the beam touches an asteroid. hp_ratio = hp / max_hp.
 ## Publisher: Engineer (asteroid.gd). Listener: VFX.
 signal asteroid_damaged(asteroid: Node3D, hit_position: Vector3, hp_ratio: float)
-## Asteroid broke. size is &"S", &"M" or &"L".
+## Asteroid broke. radius = its XZ radius in metres (VFX scales the break by it).
 ## Publisher: Engineer (asteroid.gd). Listeners: VFX, Engineer (respawn), Gameplay (cut beam).
-signal asteroid_destroyed(position: Vector3, size: StringName)
+signal asteroid_destroyed(position: Vector3, radius: float)
 ## Ore pickup spawned. Publisher: Engineer (pickup system). Listener: VFX.
 signal ore_spawned(position: Vector3, item_id: StringName, amount: int)
 ## Ore pickup accepted into cargo. Publisher: Engineer (pickup system). Listeners: VFX, UI.

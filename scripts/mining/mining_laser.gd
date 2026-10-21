@@ -188,7 +188,7 @@ static func _is_minable(n: Node3D) -> bool:
 	return not broken
 
 
-func _on_asteroid_destroyed(_position: Vector3, _size: StringName) -> void:
+func _on_asteroid_destroyed(_position: Vector3, _radius: float) -> void:
 	# The broken asteroid leaves the asteroid layer; re-cast now so the beam
 	# does not keep pointing at it for a frame.
 	if firing:

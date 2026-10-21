@@ -56,7 +56,10 @@ func spawn(pos: Vector3, item_id: StringName, amount: int, velocity: Vector3 = V
 			return merge
 	var pickup: OrePickup = _scene.instantiate() as OrePickup if _scene != null else OrePickup.new()
 	var def := GameState.get_resource(item_id)
-	pickup.setup(item_id, amount, velocity, def.pickup_color if def != null else Color(0.85, 0.7, 0.45))
+	if def != null:
+		pickup.setup(item_id, amount, velocity, def.pickup_color, def.pickup_scene_path)
+	else:
+		pickup.setup(item_id, amount, velocity, Color(0.85, 0.7, 0.45))
 	pickup.name = "OrePickup"
 	pickup.position = pos
 	add_child(pickup, true)
