@@ -11,8 +11,9 @@ extends Node3D
 ## mining_beam_started(origin: Node3D, target: Node3D) when the beam turns on and
 ## again whenever it locks onto a new asteroid; origin = FX_MiningOrigin node,
 ## target = asteroid node or null (no hit: VFX draws to beam_end / beam_range).
-## mining_beam_stopped() when it turns off. beam_origin / beam_end stay public
-## world positions for per-frame polling.
+## mining_beam_updated(origin: Node3D, end: Vector3) every physics frame while on
+## (end = hit point or max range). mining_beam_stopped() when it turns off.
+## beam_origin / beam_end stay public world positions for per-frame polling.
 ## Public API matches the integration build (setup, set_stats, mine, beam_*).
 
 signal firing_changed(on: bool)
@@ -137,6 +138,10 @@ func _set_firing(on: bool) -> void:
 func _tick(dt: float) -> void:
 	_spin_t += dt
 	_update_beam()
+	# mining_beam_updated(origin: Node3D, end: Vector3) is being added to the
+	# EventBus by the Engineer (VFX follow hook); emit only once it exists.
+	if EventBus.has_signal(&"mining_beam_updated"):
+		EventBus.emit_signal(&"mining_beam_updated", get_origin_node(), beam_end)
 	if hit_asteroid != null and _spin_t >= definition.spin_up:
 		hit_asteroid.call(DAMAGE_METHOD, damage_per_second() * dt, beam_end)
 
