@@ -1,10 +1,5 @@
 [gd_resource type="Resource" script_class="ShipPartDefinition" format=3]
 
-; PLACEHOLDER VALUES (balance_prototype, GAME_PLAN §15.3): every number in this
-; file is a temporary prototype value set by engineering so M1 can run.
-; GAME_PLAN lists these as TBD. The Gameplay Designer replaces them.
-; M1 content: only L1 is filled. L2/L3 exist with level numbers only (contract §6 rule 3).
-
 [ext_resource type="Script" path="res://scripts/data/ship_part_level.gd" id="1_4d0he"]
 [ext_resource type="Script" path="res://scripts/data/cost_entry.gd" id="2_to1kd"]
 [ext_resource type="Script" path="res://scripts/data/stat_modifier.gd" id="3_2s16e"]
@@ -12,30 +7,81 @@
 
 [sub_resource type="Resource" id="Resource_vrv12"]
 script = ExtResource("3_2s16e")
-stat = &"damage"
-value = 5.0
+stat = &"mining_power"
+value = 6.0
 
 [sub_resource type="Resource" id="Resource_c7qsl"]
 script = ExtResource("3_2s16e")
-stat = &"mining_power"
-value = 5.0
+stat = &"damage"
+value = 6.0
 
 [sub_resource type="Resource" id="Resource_i4l4f"]
-script = ExtResource("1_4d0he")
-scene_path = "res://assets/models/ships/starter_shuttle_01/head_L1.glb"
-modifiers = Array[ExtResource("3_2s16e")]([SubResource("Resource_vrv12"), SubResource("Resource_c7qsl")])
+script = ExtResource("3_2s16e")
+stat = &"mass"
+value = 0.4
 
 [sub_resource type="Resource" id="Resource_jho1c"]
 script = ExtResource("1_4d0he")
-level = 2
+scene_path = "res://assets/models/ships/starter_shuttle_01/head_L1.glb"
+modifiers = Array[ExtResource("3_2s16e")]([SubResource("Resource_vrv12"), SubResource("Resource_c7qsl"), SubResource("Resource_i4l4f")])
 
 [sub_resource type="Resource" id="Resource_0mudr"]
+script = ExtResource("2_to1kd")
+item_id = &"credits"
+amount = 320
+
+[sub_resource type="Resource" id="Resource_4pxv8"]
+script = ExtResource("3_2s16e")
+stat = &"mining_power"
+value = 9.0
+
+[sub_resource type="Resource" id="Resource_j3u8c"]
+script = ExtResource("3_2s16e")
+stat = &"damage"
+value = 8.0
+
+[sub_resource type="Resource" id="Resource_3ntat"]
+script = ExtResource("3_2s16e")
+stat = &"mass"
+value = 0.4
+
+[sub_resource type="Resource" id="Resource_rc5w8"]
+script = ExtResource("1_4d0he")
+level = 2
+scene_path = "res://assets/models/ships/starter_shuttle_01/head_L2.glb"
+modifiers = Array[ExtResource("3_2s16e")]([SubResource("Resource_4pxv8"), SubResource("Resource_j3u8c"), SubResource("Resource_3ntat")])
+cost = Array[ExtResource("2_to1kd")]([SubResource("Resource_0mudr")])
+
+[sub_resource type="Resource" id="Resource_rupwy"]
+script = ExtResource("2_to1kd")
+item_id = &"credits"
+amount = 800
+
+[sub_resource type="Resource" id="Resource_e3isi"]
+script = ExtResource("3_2s16e")
+stat = &"mining_power"
+value = 12.0
+
+[sub_resource type="Resource" id="Resource_xdkv2"]
+script = ExtResource("3_2s16e")
+stat = &"damage"
+value = 10.0
+
+[sub_resource type="Resource" id="Resource_oyk58"]
+script = ExtResource("3_2s16e")
+stat = &"mass"
+value = 0.4
+
+[sub_resource type="Resource" id="Resource_h8ro5"]
 script = ExtResource("1_4d0he")
 level = 3
+scene_path = "res://assets/models/ships/starter_shuttle_01/head_L3.glb"
+modifiers = Array[ExtResource("3_2s16e")]([SubResource("Resource_e3isi"), SubResource("Resource_xdkv2"), SubResource("Resource_oyk58")])
+cost = Array[ExtResource("2_to1kd")]([SubResource("Resource_rupwy")])
 
 [resource]
 script = ExtResource("4_bg7qd")
 id = &"head_starter_shuttle_01"
 hull_id = &"starter_shuttle_01"
 display_name = "Starter Head"
-levels = Array[ExtResource("1_4d0he")]([SubResource("Resource_i4l4f"), SubResource("Resource_jho1c"), SubResource("Resource_0mudr")])
+levels = Array[ExtResource("1_4d0he")]([SubResource("Resource_jho1c"), SubResource("Resource_rc5w8"), SubResource("Resource_h8ro5")])

@@ -1,10 +1,5 @@
 [gd_resource type="Resource" script_class="ShipPartDefinition" format=3]
 
-; PLACEHOLDER VALUES (balance_prototype, GAME_PLAN §15.3): every number in this
-; file is a temporary prototype value set by engineering so M1 can run.
-; GAME_PLAN lists these as TBD. The Gameplay Designer replaces them.
-; M1 content: only L1 is filled. L2/L3 exist with level numbers only (contract §6 rule 3).
-
 [ext_resource type="Script" path="res://scripts/data/ship_part_level.gd" id="1_1qpiq"]
 [ext_resource type="Script" path="res://scripts/data/cost_entry.gd" id="2_7li4u"]
 [ext_resource type="Script" path="res://scripts/data/stat_modifier.gd" id="3_wqgax"]
@@ -13,25 +8,91 @@
 [sub_resource type="Resource" id="Resource_38u5v"]
 script = ExtResource("3_wqgax")
 stat = &"carry_capacity"
-value = 10.0
+value = 20.0
 
 [sub_resource type="Resource" id="Resource_wfbrt"]
 script = ExtResource("3_wqgax")
 stat = &"storage_solid"
-value = 10.0
+value = 20.0
 
 [sub_resource type="Resource" id="Resource_h7ab0"]
-script = ExtResource("1_1qpiq")
-scene_path = "res://assets/models/ships/starter_shuttle_01/body_L1.glb"
-modifiers = Array[ExtResource("3_wqgax")]([SubResource("Resource_38u5v"), SubResource("Resource_wfbrt")])
+script = ExtResource("3_wqgax")
+stat = &"hull"
+value = 40.0
 
 [sub_resource type="Resource" id="Resource_48ful"]
-script = ExtResource("1_1qpiq")
-level = 2
+script = ExtResource("3_wqgax")
+stat = &"mass"
+value = 1.6
 
 [sub_resource type="Resource" id="Resource_07wnb"]
 script = ExtResource("1_1qpiq")
+scene_path = "res://assets/models/ships/starter_shuttle_01/body_L1.glb"
+modifiers = Array[ExtResource("3_wqgax")]([SubResource("Resource_38u5v"), SubResource("Resource_wfbrt"), SubResource("Resource_h7ab0"), SubResource("Resource_48ful")])
+
+[sub_resource type="Resource" id="Resource_vh6mp"]
+script = ExtResource("2_7li4u")
+item_id = &"credits"
+amount = 360
+
+[sub_resource type="Resource" id="Resource_8vkvx"]
+script = ExtResource("3_wqgax")
+stat = &"carry_capacity"
+value = 30.0
+
+[sub_resource type="Resource" id="Resource_hffkk"]
+script = ExtResource("3_wqgax")
+stat = &"storage_solid"
+value = 30.0
+
+[sub_resource type="Resource" id="Resource_ctuwf"]
+script = ExtResource("3_wqgax")
+stat = &"hull"
+value = 70.0
+
+[sub_resource type="Resource" id="Resource_542iq"]
+script = ExtResource("3_wqgax")
+stat = &"mass"
+value = 1.6
+
+[sub_resource type="Resource" id="Resource_rgouy"]
+script = ExtResource("1_1qpiq")
+level = 2
+scene_path = "res://assets/models/ships/starter_shuttle_01/body_L2.glb"
+modifiers = Array[ExtResource("3_wqgax")]([SubResource("Resource_8vkvx"), SubResource("Resource_hffkk"), SubResource("Resource_ctuwf"), SubResource("Resource_542iq")])
+cost = Array[ExtResource("2_7li4u")]([SubResource("Resource_vh6mp")])
+
+[sub_resource type="Resource" id="Resource_7sq4d"]
+script = ExtResource("2_7li4u")
+item_id = &"credits"
+amount = 850
+
+[sub_resource type="Resource" id="Resource_i2k82"]
+script = ExtResource("3_wqgax")
+stat = &"carry_capacity"
+value = 40.0
+
+[sub_resource type="Resource" id="Resource_4w7r3"]
+script = ExtResource("3_wqgax")
+stat = &"storage_solid"
+value = 40.0
+
+[sub_resource type="Resource" id="Resource_np5sh"]
+script = ExtResource("3_wqgax")
+stat = &"hull"
+value = 100.0
+
+[sub_resource type="Resource" id="Resource_c7677"]
+script = ExtResource("3_wqgax")
+stat = &"mass"
+value = 1.6
+
+[sub_resource type="Resource" id="Resource_ix8xj"]
+script = ExtResource("1_1qpiq")
 level = 3
+scene_path = "res://assets/models/ships/starter_shuttle_01/body_L3.glb"
+modifiers = Array[ExtResource("3_wqgax")]([SubResource("Resource_i2k82"), SubResource("Resource_4w7r3"), SubResource("Resource_np5sh"), SubResource("Resource_c7677")])
+cost = Array[ExtResource("2_7li4u")]([SubResource("Resource_7sq4d")])
 
 [resource]
 script = ExtResource("4_i36v3")
@@ -39,4 +100,4 @@ id = &"body_starter_shuttle_01"
 hull_id = &"starter_shuttle_01"
 slot = 1
 display_name = "Starter Body"
-levels = Array[ExtResource("1_1qpiq")]([SubResource("Resource_h7ab0"), SubResource("Resource_48ful"), SubResource("Resource_07wnb")])
+levels = Array[ExtResource("1_1qpiq")]([SubResource("Resource_07wnb"), SubResource("Resource_rgouy"), SubResource("Resource_ix8xj")])
