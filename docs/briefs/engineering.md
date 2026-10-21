@@ -20,14 +20,14 @@ Mimariyi kurar, içeriği koddan ayırırsın (§15). Diğer rollerin paralel ç
 ## Mimari önerisi (§15.1–15.2'nin Godot karşılığı)
 
 - **Veri:** `Resource` alt sınıfları `scripts/data/`: `ShipHullDefinition`, `ShipPartDefinition`, `ModuleDefinition`, `ResourceDefinition`, `AsteroidDefinition`, `EnemyDefinition`, `LootTableDefinition` (M1); diğerleri ilgili milestone'da. `.tres` örnekleri `data/`.
-- **Autoload'lar** (`scripts/core/`): `Events` (global sinyal bus: `cargo_changed`, `cargo_full`, `hull_changed`, `fuel_changed`, `heat_changed`, `enemy_killed`, `pickup_collected`, `player_died`), `Pools` (object pool), `GameState` (oturum durumu), `Debug` (F3 overlay).
+- **Autoload'lar** (`scripts/core/`): `EventBus` (`scripts/core/event_bus.gd`, global sinyal bus; M1 listesi: `hull_changed(current, maximum)`, `fuel_changed(current, maximum)`, `energy_changed(current, maximum)`, `heat_changed(current, maximum)`, `slot_selected(slot_number)`, `cargo_added(item_id, amount)`, `cargo_rejected(item_id, amount, reason)`, `player_died()`, `player_respawned()`), `Pools` (object pool), `GameState` (oturum durumu), `Debug` (F3 overlay).
 - **Sistemler:** `ShipStatsResolver` (parçalar + modüller → efektif stat), `HardpointLoadout`, `CargoStorage` (solid/liquid/gas), `MiningExtractor` ↔ `AsteroidResourceNode`.
 - **Sahne arayüzleri:** `player_ship.tscn` kök `ShipRoot` + `Visual` (glb instance) + `Hardpoints/` (Node3D'ler glb'deki `Hardpoint_*` boşlarından) + `FX/`.
 - Fizik: XZ düzlemine kilit (Y pozisyon + X/Z rotasyon sabit), gravity 0 (project.godot'ta).
 
 ## M1 görevlerin
 
-1. Hafta 1'de sözleşmeler: veri sınıfları, `Events` sinyalleri, sahne arayüzleri → `docs/ARCHITECTURE.md`.
+1. Hafta 1'de sözleşmeler: veri sınıfları, `EventBus` sinyalleri, sahne arayüzleri → `docs/ARCHITECTURE.md`.
 2. `scenes/main/main.tscn` kompozisyonu: world, player, camera, HUD, VFX environment.
 3. `Pools`, `Debug` overlay (FPS, hız, fuel, heat, kargo, draw calls).
 4. glTF import ayarları/post-import script (hardpoint boşlarını Node3D'ye, collision üretimi `-col` soneki vb.) — Modeler ile.
