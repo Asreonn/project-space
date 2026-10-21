@@ -48,6 +48,8 @@ func test_fuel_stats_are_hull_base_values() -> void:
 
 
 func test_empty_l2_l3_do_not_change_base() -> void:
+	# Synthetic hull: the MVP starter data fills L2/L3, so use empty levels here.
+	hull = TestShips.make_hull(hull.base_stats.duplicate(), hull.upgrade_caps.duplicate())
 	var l3 := ShipStatsResolver.resolve(hull, ShipInstanceState.create_for(hull, 3))
 	for stat: StringName in hull.base_stats.keys():
 		var cap: float = hull.upgrade_caps.get(stat, INF)

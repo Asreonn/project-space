@@ -28,6 +28,12 @@ func test_starter_ship_passes_m1_validation() -> void:
 	assert_true(r.is_ok(), str(r))
 
 
+func test_mvp_starter_ship_passes_full_content_validation() -> void:
+	# MVP (D-011): all three levels authored, models delivered.
+	var r := ShipDataValidator.validate_hull(load(STARTER_HULL) as ShipHullDefinition, 3, true)
+	assert_true(r.is_ok(), str(r))
+
+
 func test_starter_ship_catalog_passes() -> void:
 	var hulls: Array[ShipHullDefinition] = [load(STARTER_HULL)]
 	var r := ShipDataValidator.validate_catalog(hulls, M1_AUTHORED_LEVEL, false)
@@ -41,7 +47,14 @@ func test_missing_models_are_warnings_in_m1_mode() -> void:
 
 
 func test_full_content_mode_flags_missing_l2_l3() -> void:
-	# With the contract default (all 3 levels authored) the M1 ship is incomplete.
+	# With the contract default (all 3 levels authored) a ship whose L2/L3 are
+	# empty is incomplete. The MVP starter data fills L2/L3 (D-011), so empty them here.
+	for slot: int in ShipPartDefinition.Slot.values():
+		for n: int in [2, 3]:
+			var lvl := hull.get_part(slot as ShipPartDefinition.Slot).get_level(n)
+			lvl.scene_path = ""
+			lvl.cost.clear()
+			lvl.modifiers.clear()
 	var r := ShipDataValidator.validate_hull(hull, 3, false)
 	assert_false(r.is_ok())
 	assert_true(_has_error(r, "rule 4"))
