@@ -7,10 +7,11 @@
 | Milestone | Kapsam | GAME_PLAN fazı |
 |---|---|---|
 | **M0 — Bootstrap** ✅ | Repo, Godot iskeleti, docs, brief'ler, araç zinciri | — |
-| **M1 — Vertical Slice** ⏳ | Uçuş + kamera + asteroid alanı + laser madencilik + loot + temel HUD + 1 düşman + VFX/post-process | P0 + P1 (Laser) + P2 (tek düşman) |
+| **MVP — Oynanabilir döngü** ⏳ | Uç → kaz → asteroid kırılır → cevher topla → istasyonda sat → parçayı L1→L3 yükselt (model swap). Düşmansız. Bkz. [briefs/mvp.md](briefs/mvp.md), D-010 | P0 + P1 (Laser) çekirdeği |
+| **M1 — Vertical Slice** | Uçuş + kamera + asteroid alanı + laser madencilik + loot + temel HUD + 1 düşman + VFX/post-process | P0 + P1 (Laser) + P2 (tek düşman) |
 | M2 — Mining Trio | Bomb + Drill, solid/liquid/gas depolama, transfer noktası | P1 tamamı |
 | M3 — Combat Basics | Silah + turret tabanı, düşman davranışları, recovery/respawn | P2 |
-| M4 — Salvage & Customization | Enkaz, sökme, Head/Engine/Wings/Body swap, universal hardpoint, passive electronics | P3 |
+| M4 — Salvage & Customization | Enkaz, sökme, parça L1–L3 yükseltmesinde salvage malzemesi (sabit parça seti, D-006), universal hardpoint, passive electronics | P3 |
 | M5 — Grade & Second Hull | E→SSS şeması, native grade, ikinci gövde | P4 |
 | M6 — Region & Services | 2 sektör, radar keşfi, istasyon hizmetleri, kredi | P5 |
 | M7 — Prototype Close | Save/load, profil, kullanıcı testi, demo | P6 |
@@ -18,25 +19,31 @@
 
 ---
 
-## M1 — Vertical Slice (şimdiki hedef)
+## MVP (şimdiki hedef)
 
-**Amaç:** 3–5 dakikalık, eğlenceli hissettiren tek ekran: gemiyle uç, asteroid alanında laser ile maden çıkar, saçılan/çıkan kaynağı topla, bir düşman drone'u savuştur; her şey referanstaki cozy pastel low-poly görünümde.
+M1'den önce küçük ve oynanabilir bir döngü çıkarılır. Kapsam, roller, EventBus kontratı ve kabul kriterleri: [briefs/mvp.md](briefs/mvp.md). M1, MVP'nin üstüne kurulur.
+
+---
+
+## M1 — Vertical Slice (MVP'den sonra)
+
+**Amaç:** 3–5 dakikalık, eğlenceli hissettiren tek ekran: gemiyle uç, asteroid alanında laser ile maden çıkar, saçılan/çıkan kaynağı topla, küçük bir pirate/scout düşmanını savuştur; her şey referanstaki cozy pastel low-poly görünümde.
 
 ### Kapsam
 
-1. **Starter ship** — tek gemi, ayrı `Head/Body/Engine/Wings` parçaları + hardpoint anchor'ları (§4.3, §14.2). İyi uçmalı: hızlanma, dönüş, fren, boost, hafif drift (§3.2). Flying Speed ≠ Maneuver Speed.
+1. **Starter ship** — tek gemi, sabit `Head/Body/Engine/Wings` seti, her parçada L1–L3 + hardpoint anchor'ları (§4.3, §14.2, D-006). Boy 1,84 m (D-009). İyi uçmalı: hızlanma, dönüş, fren, boost, hafif drift (§3.2). Flying Speed ≠ Maneuver Speed.
 2. **Kamera** — 2.5D top-down, neredeyse tam üstten, hafif takip + zoom (§3.1). Perspektif (düşük FOV) ve ortografik ikisi de denenir; playtest sonrası seçilir.
 3. **Asteroid alanı** — 2–3 asteroid varyasyonu (sıradan, cevherli, kristalli), seed'li yerleşim, havuzlanmış nesneler (§3.3, §15.4).
 4. **Laser madencilik döngüsü** — uzak menzil, orta verim, küçük alan, ısı (§6). Asteroid yüzey/damar node'u → kaynak → **solid** depoya → kapasite dolu geri bildirimi (§6.1, §7).
 5. **Loot pickup** — kopan parçalar / düşman hurdası; yaklaşınca çekim (magnet) ve toplama; kargo tipine göre kabul/ret.
 6. **Temel HUD** — sol üst Hull + Fuel, sol kenarda 4 aktif slot (1: Laser aktif, 2–4 kilitli/boş), sol altta yuvarlak minimap/radar, bağlamsal heat göstergesi. **Alt envanter barı yok** (§13.1).
-7. **Bir düşman** — basit drone/scout: yaklaş → ateş et → geri çekil; hasar alır, ölünce hurda/loot bırakır. Oyuncunun basit sabit silahı (fire_primary). Ölümde maliyetsiz respawn (§9.3 ÖNERİ). _(İsim/silüet: DECISIONS D-004)_
+7. **Bir düşman** — küçük pirate/scout: yaklaş → ateş et → geri çekil; hasar alır, ölünce hurda/loot bırakır. Oyuncunun basit sabit silahı (fire_primary). Ölümde maliyetsiz respawn (§9.3 ÖNERİ). _(D-004: küçük pirate/scout)_
 8. **VFX + post-process geçişi** — nebula/yıldız arka planı (parallax), motor izi, laser ışını + temas ısıması + kıvılcım, toplama parıltısı, hasar flaşı, patlama; glow/bloom, tonemap, renk derecelendirme, hafif vignette. Cozy, ölçülü (§14.1).
 9. **Debug overlay** (F3) — FPS, hız, fuel, heat, kargo (§16 P0).
 
 ### Kapsam dışı (M1)
 
-Bomb, Drill, liquid/gas içeriği (yalnız veri düzeyinde destek), salvage/enkaz sökme, grade/upgrade, istasyon/ekonomi, save/load, Mother Ship, ses tasarımı (placeholder serbest).
+Bomb, Drill, liquid/gas içeriği (yalnız veri düzeyinde destek), salvage/enkaz sökme, grade sistemi, istasyon hizmetleri ve ekonominin MVP'nin ötesine genişlemesi (MVP'deki tek istasyon, kredi ve L1–L3 yükseltmesi M1'de kalır), save/load, Mother Ship, ses tasarımı (placeholder serbest).
 
 ### Kabul kriterleri
 
@@ -53,9 +60,9 @@ Bomb, Drill, liquid/gas içeriği (yalnız veri düzeyinde destek), salvage/enka
 
 | Rol | M1 teslimleri |
 |---|---|
-| Game Designer | M1 kapsam kilidi, düşman adı/silüet kararı (D-004), playtest checklist, haftalık kabul |
+| Game Designer | M1 kapsam kilidi, playtest checklist, haftalık kabul (düşman kararı D-004 ile kapandı: pirate/scout) |
 | Gameplay Designer | `ship_controller` uçuş hissi, laser madencilik, kargo, pickup magnet, düşman AI, `data/*.tres` prototip değerleri |
-| 3D Modeler | Starter ship (4 parça + hardpoint'ler), 3 asteroid, laser modülü, 3 pickup, 1 düşman, (opsiyonel) uzak gezegen |
+| 3D Modeler | Starter ship (4 parça + hardpoint'ler), 3 asteroid, laser modülü, 3 pickup, 1 düşman (pirate/scout), (opsiyonel) uzak gezegen |
 | UI Designer | HUD (hull/fuel, 4 slot, minimap), Theme, ikon seti (laser/bomb/drill/skill, solid/liquid/gas), kargo-dolu uyarısı |
 | VFX Engineer | Environment/post-process, nebula+yıldız, motor izi, laser + hit, pickup, hasar/patlama, toon/low-poly materyal |
 | Godot Engineer | Mimari (autoload'lar, event bus, veri şeması), main sahne entegrasyonu, object pooling, debug overlay, test/CI, review/merge |
@@ -72,7 +79,7 @@ Bomb, Drill, liquid/gas içeriği (yalnız veri düzeyinde destek), salvage/enka
 
 - **M2 Mining Trio:** Bomb (ammo, alan, saçılım) + Drill (yakın, yüksek verim); liquid/gas pickup ve tank kapasitesi; transfer noktası. Kabul: §16 P1.
 - **M3 Combat Basics:** sabit silah + turret, pirate/scout ailesi, projectile pool, recovery. Kabul: §16 P2.
-- **M4 Salvage & Customization:** enkaz tarama/sökme, condition, parça swap, universal hardpoint, electronics bütçesi. Kabul: §16 P3.
+- **M4 Salvage & Customization:** enkaz tarama/sökme, condition, salvage malzemesiyle parça yükseltme (başka gemiden parça takılmaz, D-006), universal hardpoint, electronics bütçesi. Kabul: §16 P3.
 - **M5 Grade & Second Hull:** E→SSS, native cap, ikinci gemi. Kabul: §16 P4.
 - **M6 Region & Services:** iki sektör, istasyon, kredi, fuel menzili. Kabul: §16 P5.
 - **M7 Prototype Close:** save/load, profil, kullanıcı testi. Kabul: §16 P6.

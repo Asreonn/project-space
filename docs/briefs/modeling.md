@@ -13,7 +13,8 @@ Referans görselden (2D konsept) **low-poly, cute/cozy** 3D modeller çıkarırs
 - Low-poly, sevimli, yumuşak formlu; foto-gerçekçi materyal ve aşırı kompleks model yok (§14.1).
 - Starter gemi: küçük, kırık-beyaz/kremsi gövde, yumuşak turuncu detaylar, mavi motor izi (README_Modelleme).
 - Gemi **4 ayrı parça**: `Head_*`, `Body_*`, `Engine_*`, `Wings_*` + `Hardpoint_*` boşları (§4.3, §14.2).
-- Grade varyantı yalnız renk değişimi **değil**; ek parça/oran/silüet farkı (§4.3, §14.2.4).
+- Her geminin **sabit** parça seti var; başka gemiden parça takılmaz. Her parçanın 3 seviyesi var (L1, L2, L3) → bir gemi = 12 GLB. Sonraki gemi kendi 4 yeni parçası ve 3'er seviyesiyle gelir (D-006).
+- Seviye (L1–L3) varyantı yalnız renk değişimi **değil**; ek parça/oran/silüet farkı, aynı tasarım ailesi (§4.3, §14.2.4).
 - Aynı modeli renk değiştirerek çoğaltma yok (§4.3).
 - Maden, düşman ve oyuncu gemileri birbirine karışmamalı (§14.2.5).
 - Referanslar tasarım yönüdür, stat/lore değil (§14.2.6). Yakıt tankı parçası zorunlu slot değil (README).
@@ -21,9 +22,10 @@ Referans görselden (2D konsept) **low-poly, cute/cozy** 3D modeller çıkarırs
 ## Teknik sözleşme (AGENTS.md §5)
 
 - Blender Z-up; **burun +Y** (Top view'da yukarı). glTF export: `+Y Up` açık, Apply Modifiers açık → Godot'ta burun −Z.
-- 1 birim = 1 m. Starter gemi ~3 m boy (öneri). Pivot = kütle merkezi, Z=0 düzlemi.
-- Obje adları: `Head_starter_01`, `Body_starter_01`, `Engine_starter_01`, `Wings_starter_01`; boşlar `Hardpoint_L`, `Hardpoint_R`, `Hardpoint_Nose`, `FX_EngineTrail_0`.
-- Dosyalar: `art/blender/ships/starter_shuttle_01.blend` → `assets/models/ships/starter_shuttle_01.glb`. Parçaları ayrı swap için ayrıca `head_starter_01.glb` vb. de export edilebilir (Engineer ile karar).
+- 1 birim = 1 m. **Starter gemi boyu 1,84 m** (L1, burun → nozul; D-009, Asrın onaylı). Diğer her şey buna göre ölçeklenir: asteroid yarıçapı S 0,9–1,2 m, M 2,2–2,8 m, L 3,5–4,5 m; istasyon 12–16 m çap. Pivot = kütle merkezi (Body origin'i), Z=0 düzlemi. Transform'lar uygulanmış (scale 1, rotation 0).
+- Obje adları (D-008): `Head_<hull_id>`, `Body_<hull_id>`, `Wings_<hull_id>`, `Engine_<hull_id>` (örn. `Head_starter_shuttle_01`). Body GLB'si socket boşlarını taşır: `Socket_Head`, `Socket_Wings`, `Socket_Engine` (Body için socket yok). Hardpoint boşları body'de: `Hardpoint_L`, `Hardpoint_R`, `Hardpoint_Nose` (opsiyonel); `Hardpoint_Top` rezerve (M2). Engine'de `FX_EngineTrail_<n>` (n 0'dan), Head'de `FX_MiningOrigin`. Socket ve hardpoint'ler L1–L3'te aynı yerde kalır.
+- Dosyalar: kaynak `art/blender/ships/<hull_id>/` → export `assets/models/ships/<hull_id>/<part>_L<n>.glb` (`part` ∈ head/body/wings/engine, `n` ∈ 1..3) + `<hull_id>_collision.glb`. Parça id'si `<part>_<hull_id>` (örn. `head_starter_shuttle_01`). Grade dosya eki (`_e`, `_d`) kullanılmaz; seviye `_L<n>` ile belirtilir. Hull başına `.tscn` yok, montajı `ShipAssembler` yapar. Anchor ölçüleri `docs/contracts/model_anchors.md`'de.
+- Geçersiz eski isimler: `Head_starter_01`, `head_starter_01`, `HardpointLeft`, `PartSocket_*`, `Hardpoint_hp_*`, `FX_Thruster_*`.
 - Materyal: flat/low-poly; 1 adet küçük palet texture (ör. 64×64 renk paleti) veya vertex color. Emissive bölgeler ayrı materyal slotu (VFX glow için). Materyal adı `M_<ad>`.
 - Poligon bütçesi [ÖNERİ — §14.4 AÇIK]: starter gemi ≤ 2–3k tri, asteroid 150–800 tri, pickup ≤ 200 tri, düşman ≤ 2k tri.
 - Her asset için: üstten (ortografik) + 3/4 render PNG'si PR'a ekle; gameplay ölçeğinde (kamera ~30 m yükseklik) silüet testi.
@@ -31,13 +33,15 @@ Referans görselden (2D konsept) **low-poly, cute/cozy** 3D modeller çıkarırs
 
 ## M1 görevlerin (öncelik sırası)
 
-1. **Starter ship blockout** (P0, Paket A/B): 4 parça + 3 hardpoint + motor izi noktası; üstten okunaklı.
+> **Şimdiki hedef MVP:** görevlerin [mvp.md](mvp.md) §5'te (asteroidler, cevher pickup'ları, istasyon). Aşağıdaki liste M1 içindir.
+
+1. **Starter ship** (P0, Paket A/B): 4 parça × L1–L3 + hardpoint'ler + motor izi noktaları; üstten okunaklı. ✅ PR #1 (`starter_shuttle_01`, Asrın onayladı; tasarım değişmez).
 2. **Laser modülü** (`MiningLaser_mk1`): ince ısı başlığı, hardpoint'e oturur (README: Laser ince ısı başlığı; Bomb yuvarlak lançer; Drill kısa konik matkap — Bomb/Drill M2).
 3. **3 asteroid**: sıradan, metalik/cevherli, kristalli — fasetli büyük kaya + seçilebilir maden çıkıntıları (ayrı mesh, laser hedefi). 2–3 LOD gerekmez.
 4. **3 pickup**: solid (cevher parçası/kristal), liquid (damla kapsül), gas (basınç tüpü) — M1'de solid kullanılır.
-5. **1 düşman** (drone/scout — D-004 kararına göre): oyuncudan silüet ve renkle ayrışan (kırmızı/koyu aksan).
+5. **1 düşman** (küçük pirate/scout — D-004, M1): oyuncudan silüet ve renkle ayrışan (kırmızı/koyu aksan).
 6. (Opsiyonel) uzak gezegen / halka — VFX ile birlikte arka plan.
-7. Starter ship final + E/D grade için Head'in iki varyantı (morfolojik fark).
+7. ~~Starter ship final + E/D grade için Head'in iki varyantı~~ → D-006 ile yerini L1–L3 seviyeleri aldı (madde 1'de tamamlandı).
 
 ## Kabul
 
@@ -55,7 +59,7 @@ Referans görselden (2D konsept) **low-poly, cute/cozy** 3D modeller çıkarırs
 
 ## Ek — GAME_PLAN.md'den ilgili bölümler (birebir)
 
-> Aşağıdaki metin `docs/GAME_PLAN.md` v0.1'den kopyalandı; çelişkide GAME_PLAN + `docs/DECISIONS.md` geçerlidir. **Motor artık Godot 4** (D-001) — §3.3/§20'deki "motor açık" ifadeleri kapandı.
+> Aşağıdaki metin `docs/GAME_PLAN.md` v0.1'den kopyalandı; çelişkide GAME_PLAN + `docs/DECISIONS.md` geçerlidir. **Motor artık Godot 4** (D-001) — §3.3/§20'deki "motor açık" ifadeleri kapandı. **§4.3'teki parça "uyumluluğu" ve grade varyantları D-006 ile güncellendi:** sabit parça seti, başka gemiden parça yok, grade görsel farkı = L1–L3.
 
 
 ### 1. Oyun vizyonu ve oyuncu fantezisi
