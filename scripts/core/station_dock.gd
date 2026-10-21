@@ -77,13 +77,17 @@ func set_docked(value: bool) -> void:
 
 
 func _on_body_entered(body: Node3D) -> void:
-	if body.is_in_group(&"player_ship"):
+	if _is_player(body):
 		set_docked(true)
 
 
 func _on_body_exited(body: Node3D) -> void:
-	if body.is_in_group(&"player_ship"):
+	if _is_player(body):
 		set_docked(false)
+
+
+static func _is_player(body: Node3D) -> bool:
+	return body is ShipController or body.is_in_group(&"player")
 
 
 func _build_visual() -> Node3D:

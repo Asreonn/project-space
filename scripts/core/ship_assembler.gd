@@ -44,7 +44,11 @@ const COLOR_ACCENT := Color(1.0, 0.62, 0.32)
 
 ## When true, EventBus.part_upgraded (from GameState.try_upgrade) swaps the
 ## matching part model. The player ship sets this; debug scenes leave it off.
-@export var follow_part_upgrades: bool = false
+@export var follow_part_upgrades: bool = false:
+	set(value):
+		follow_part_upgrades = value
+		if is_inside_tree():
+			_connect_part_upgrades()
 
 var hull: ShipHullDefinition
 var state: ShipInstanceState
@@ -56,8 +60,15 @@ var used_scene_paths: Dictionary[StringName, String] = {}
 
 
 func _ready() -> void:
-	if follow_part_upgrades:
+	_connect_part_upgrades()
+
+
+func _connect_part_upgrades() -> void:
+	var connected := EventBus.part_upgraded.is_connected(_on_part_upgraded)
+	if follow_part_upgrades and not connected:
 		EventBus.part_upgraded.connect(_on_part_upgraded)
+	elif not follow_part_upgrades and connected:
+		EventBus.part_upgraded.disconnect(_on_part_upgraded)
 
 
 func _on_part_upgraded(part: StringName, level: int) -> void:
