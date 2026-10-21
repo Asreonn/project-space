@@ -29,6 +29,9 @@ Godot 4.7.2 (`/usr/bin/godot`), Blender 5.2.2 LTS (`~/.local/bin/blender`), git-
 ```bash
 godot --headless --path . --import                              # import
 godot --headless --path . --script res://tests/smoke_test.gd    # smoke test
+godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutconfig.json   # unit tests (GUT)
+godot --headless --path . -s res://tests/tools/validate_ship_data.gd   # ship data validator + resolver
+tests/tools/lint_strict.sh                                      # strict typing check
 godot --headless --path . --export-release "Linux" build/ps.x86_64   # (preset eklenince)
 blender -b art/blender/ships/starter_shuttle_01.blend --python-expr \
   "import bpy; bpy.ops.export_scene.gltf(filepath='assets/models/ships/starter_shuttle_01.glb', export_yup=True, export_apply=True)"
@@ -103,7 +106,8 @@ blender -b art/blender/ships/starter_shuttle_01.blend --python-expr \
 | Poly Haven (CC0) | https://polyhaven.com (HDRI, texture, model) | **CC0** | Look-dev HDRI, gerekirse doku. Low-poly stile dikkat. |
 | Quaternius (CC0) | https://quaternius.com — **Ultimate Space Kit**, Spaceships packs | **CC0** | Low-poly gemi/asteroid/istasyon placeholder & referans. |
 | Phantom Camera | https://github.com/ramokz/phantom-camera | MIT | Kamera takip/zoom/shake addon'u (opsiyonel, Engineer kararı). |
-| gdUnit4 | https://github.com/godot-gdunit-labs/gdUnit4 | MIT | Birim test framework'ü (opsiyonel). |
+| GUT (Godot Unit Test) | https://github.com/bitwes/Gut (**9.7.1**, `addons/gut/`, vendored) | MIT | **Kullanılan** birim test framework'ü. Çalıştır: `godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutconfig.json` |
+| gdUnit4 | https://github.com/godot-gdunit-labs/gdUnit4 | MIT | Alternatif birim test framework'ü (kullanılmıyor; GUT seçildi). |
 | Godot debug menu | https://github.com/godot-extended-libraries/godot-debug-menu | MIT | FPS/frametime overlay (opsiyonel). |
 
 **Kural:** Üçüncü parti her şey `CREDITS.md`'ye (ad, yazar, URL, lisans, yol). CC-BY ise atıf zorunlu. Lisansı belirsiz şey ekleme. Referans görsellerdeki (AI konsept) öğeler oyun asset'i olarak kullanılmaz.

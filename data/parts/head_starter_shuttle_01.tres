@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="ShipPartDefinition" format=3]
+
+; PLACEHOLDER VALUES (balance_prototype, GAME_PLAN §15.3): every number in this
+; file is a temporary prototype value set by engineering so M1 can run.
+; GAME_PLAN lists these as TBD. The Gameplay Designer replaces them.
+; M1 content: only L1 is filled. L2/L3 exist with level numbers only (contract §6 rule 3).
+
+[ext_resource type="Script" path="res://scripts/data/ship_part_level.gd" id="1_4d0he"]
+[ext_resource type="Script" path="res://scripts/data/cost_entry.gd" id="2_to1kd"]
+[ext_resource type="Script" path="res://scripts/data/stat_modifier.gd" id="3_2s16e"]
+[ext_resource type="Script" path="res://scripts/data/ship_part_definition.gd" id="4_bg7qd"]
+
+[sub_resource type="Resource" id="Resource_vrv12"]
+script = ExtResource("3_2s16e")
+stat = &"damage"
+value = 5.0
+
+[sub_resource type="Resource" id="Resource_c7qsl"]
+script = ExtResource("3_2s16e")
+stat = &"mining_power"
+value = 5.0
+
+[sub_resource type="Resource" id="Resource_i4l4f"]
+script = ExtResource("1_4d0he")
+scene_path = "res://assets/models/ships/starter_shuttle_01/head_L1.glb"
+modifiers = Array[ExtResource("3_2s16e")]([SubResource("Resource_vrv12"), SubResource("Resource_c7qsl")])
+
+[sub_resource type="Resource" id="Resource_jho1c"]
+script = ExtResource("1_4d0he")
+level = 2
+
+[sub_resource type="Resource" id="Resource_0mudr"]
+script = ExtResource("1_4d0he")
+level = 3
+
+[resource]
+script = ExtResource("4_bg7qd")
+id = &"head_starter_shuttle_01"
+hull_id = &"starter_shuttle_01"
+display_name = "Starter Head"
+levels = Array[ExtResource("1_4d0he")]([SubResource("Resource_i4l4f"), SubResource("Resource_jho1c"), SubResource("Resource_0mudr")])
