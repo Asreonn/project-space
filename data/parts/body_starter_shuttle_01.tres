@@ -33,7 +33,7 @@ modifiers = Array[ExtResource("3_wqgax")]([SubResource("Resource_38u5v"), SubRes
 [sub_resource type="Resource" id="Resource_vh6mp"]
 script = ExtResource("2_7li4u")
 item_id = &"credits"
-amount = 360
+amount = 340
 
 [sub_resource type="Resource" id="Resource_8vkvx"]
 script = ExtResource("3_wqgax")
@@ -65,7 +65,7 @@ cost = Array[ExtResource("2_7li4u")]([SubResource("Resource_vh6mp")])
 [sub_resource type="Resource" id="Resource_7sq4d"]
 script = ExtResource("2_7li4u")
 item_id = &"credits"
-amount = 420
+amount = 400
 
 [sub_resource type="Resource" id="Resource_i2k82"]
 script = ExtResource("3_wqgax")
