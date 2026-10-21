@@ -20,7 +20,7 @@ Units 1u = 1 m, Godot +Y up, pivot = bbox centre. One mesh per asset using the s
 Sizes follow `docs/briefs/mvp.md` §3 (binding): radius S 0.9-1.2, M 2.2-2.8, L 3.5-4.5 m. Ship = 1.84 m.
 
 The ore colour shows the ore type (mvp.md §3):
-- Regular rocks: a thin flush orange glowing seam (`ore_common_solid`) across the top, readable top-down.
+- Regular rocks: a thin flush orange seam (`ore_common_solid`) across the top with a MILD glow, clearly weaker than the blue veins.
 - `asteroid_ore_*`: recessed blue glowing veins (`crystal_blue_solid`).
 - Glow faces use `M_ps_glow`. Everything else uses `M_ps_palette`.
 

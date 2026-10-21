@@ -50,7 +50,7 @@ def lineup():
     for s,y,dx in rows:
         for i,n in enumerate((1,2,3)):
             name=f"asteroid_{s}_{n:02d}"; x=(i-1)*dx; imp(f"{A}/asteroids/{name}.glb",(x,y,0))
-            items.append((name,(x,y-HALF[s]-0.2,0)))
+            items.append((name,(x,y-HALF[s]-0.2-(0.9 if s=="s" and i==1 else 0),0)))
     ship((6.6,-15.0,0)); items.append(("ship L1 (1.84 m)",(6.6,-16.4,0)))
     imp(f"{A}/asteroids/asteroid_ore_l_01.glb",(-6.5,-22.5,0)); items.append(("asteroid_ore_l_01",(-6.5,-26.6,0)))
     imp(f"{A}/asteroids/asteroid_ore_m_01.glb",(1.0,-22.5,0)); items.append(("asteroid_ore_m_01",(1.0,-25.6,0)))

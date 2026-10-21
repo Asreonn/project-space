@@ -19,7 +19,7 @@ PAL = {  # cell: (base sRGB, emit sRGB or None)
  12:((0.47,0.37,0.37),None),  # rock mid (brown-mauve)
  13:((0.30,0.24,0.27),None),  # rock dark / crater
  14:((0.42,0.33,0.40),None),  # rock mauve (purple tint)
- 15:((1.00,0.52,0.14),(1.00,0.38,0.06)),  # ore glow orange
+ 15:((1.00,0.52,0.14),(0.42,0.15,0.02)),  # ore orange, MILD glow (clearly weaker than the blue crystal GLOW cell 7)
 }
 WHITE,GREY,ORANGE,BROWN,DARK,METAL,GLASS,GLOW,LIGHT,SPINE,GUN,ROCK_L,ROCK_M,ROCK_D,ROCK_P,ORE = range(16)
 EMISSIVE = {GLASS,GLOW,LIGHT,ORE}
