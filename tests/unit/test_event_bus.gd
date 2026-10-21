@@ -13,6 +13,7 @@ const EXPECTED_ARGS: Dictionary[String, int] = {
 	"player_respawned": 0,
 	"mining_beam_started": 2,
 	"mining_beam_stopped": 0,
+	"mining_beam_updated": 2,
 	"asteroid_damaged": 3,
 	"asteroid_destroyed": 2,
 	"ore_spawned": 3,

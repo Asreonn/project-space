@@ -31,6 +31,10 @@ signal slot_selected(slot_number: int)
 signal mining_beam_started(origin: Node3D, target: Node3D)
 ## Beam switched off. Publisher: Gameplay. Listener: VFX.
 signal mining_beam_stopped()
+## Every physics frame while the beam is on (added for VFX: the beam end moves
+## even without a hit). origin = FX_MiningOrigin node, end = hit point or max range.
+## Publisher: Gameplay (mining beam). Listener: VFX.
+signal mining_beam_updated(origin: Node3D, end: Vector3)
 ## Emitted every physics frame the beam touches an asteroid. hp_ratio = hp / max_hp.
 ## Publisher: Engineer (asteroid.gd). Listener: VFX.
 signal asteroid_damaged(asteroid: Node3D, hit_position: Vector3, hp_ratio: float)
