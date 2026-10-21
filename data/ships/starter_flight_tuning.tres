@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="FlightTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/flight_tuning.gd" id="1_ft"]
+
+[resource]
+script = ExtResource("1_ft")
+balance_prototype = true
+default_flying_speed = 12.0
+default_maneuver_speed = 270.0
+default_mass = 10.0
+default_fuel_capacity = 100.0
+default_fuel_rate = 0.2
+default_hull = 100.0
+control_scheme = 0
+accel_time_to_max = 0.7
+reverse_thrust_ratio = 0.5
+strafe_speed_ratio = 0.4
+maneuver_reference = 270.0
+lateral_grip = 4.0
+coast_damp = 0.8
+brake_damp = 3.5
+overspeed_decay = 3.0
+drift_grip_mult = 0.08
+drift_damp = 0.15
+drift_thrust_mult = 0.6
+drift_turn_mult = 1.2
+turn_gain = 10.0
+turn_response = 26.0
+boost_speed_mult = 1.6
+boost_accel_mult = 2.0
+boost_max_duration = 1.2
+boost_cooldown = 2.0
+boost_start_fuel = 1.0
+boost_fuel_per_s = 2.0
+boost_min_fuel = 5.0
+fuel_idle_ratio = 0.1
+limp_speed_mult = 0.35
+reference_mass = 10.6
+loadout_mass = 0.6
+mass_exp_accel = 0.7
+mass_exp_turn = 0.5
+mass_exp_brake = 0.5
+collision_restitution = 0.3
+collision_damage_threshold = 6.0
+collision_damage_per_mps = 2.0
+camera_perspective = false
+camera_fov = 35.0
+camera_tilt_deg = 10.0
+ortho_sizes = PackedFloat32Array(30, 40, 52)
+default_zoom_index = 1
+ortho_camera_distance = 60.0
+follow_rate = 8.0
+look_ahead_time = 0.35
+look_ahead_max = 6.0
+look_ahead_rate = 3.0
+aim_offset_ratio = 0.15
+aim_offset_max = 4.0
+zoom_rate = 6.0
+boost_zoom_out = 0.12
