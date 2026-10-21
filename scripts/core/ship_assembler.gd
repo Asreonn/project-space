@@ -24,19 +24,31 @@ const ENGINE_TRAIL_PREFIX := "FX_EngineTrail_"
 const MINING_ORIGIN := "FX_MiningOrigin"
 const PLACEHOLDER_META := &"ps_placeholder"
 
-## Placeholder layout (balance/art placeholder until model_anchors.md exists).
+## Placeholder layout = Docs/contracts/model_anchors.md (starter_shuttle_01,
+## frozen for L1-L3), so a placeholder ship is the same 1.84 m as the real one:
+## nose tip z = -0.945 (FX_MiningOrigin), engine tail z = +0.90.
 const PLACEHOLDER_SOCKETS: Dictionary[String, Vector3] = {
-	"Socket_Head": Vector3(0.0, 0.0, -1.1),
-	"Socket_Wings": Vector3(0.0, 0.0, 0.2),
-	"Socket_Engine": Vector3(0.0, 0.0, 1.1),
+	"Socket_Head": Vector3(0.0, 0.0, -0.05),
+	"Socket_Wings": Vector3(0.0, 0.0, 0.20),
+	"Socket_Engine": Vector3(0.0, 0.0, 0.55),
 }
 const PLACEHOLDER_HARDPOINTS: Dictionary[String, Vector3] = {
-	"Hardpoint_L": Vector3(-0.75, 0.3, -0.4),
-	"Hardpoint_R": Vector3(0.75, 0.3, -0.4),
-	"Hardpoint_Nose": Vector3(0.0, 0.6, -0.7),
+	"Hardpoint_L": Vector3(-0.31, -0.03, -0.30),
+	"Hardpoint_R": Vector3(0.31, -0.03, -0.30),
+	"Hardpoint_Nose": Vector3(0.0, 0.02, -1.0),
 }
+## Ship length (nose tip to engine tail), metres.
+const SHIP_LENGTH := 1.84
 const COLOR_CREAM := Color(0.96, 0.93, 0.86)
 const COLOR_ACCENT := Color(1.0, 0.62, 0.32)
+
+## When true, EventBus.part_upgraded (from GameState.try_upgrade) swaps the
+## matching part model. The player ship sets this; debug scenes leave it off.
+@export var follow_part_upgrades: bool = false:
+	set(value):
+		follow_part_upgrades = value
+		if is_inside_tree():
+			_connect_part_upgrades()
 
 var hull: ShipHullDefinition
 var state: ShipInstanceState
@@ -45,6 +57,25 @@ var stats: Dictionary[StringName, float] = {}
 var parts: Dictionary[StringName, Node3D] = {}
 ## Scene path used per slot; "" means a generated placeholder.
 var used_scene_paths: Dictionary[StringName, String] = {}
+
+
+func _ready() -> void:
+	_connect_part_upgrades()
+
+
+func _connect_part_upgrades() -> void:
+	var connected := EventBus.part_upgraded.is_connected(_on_part_upgraded)
+	if follow_part_upgrades and not connected:
+		EventBus.part_upgraded.connect(_on_part_upgraded)
+	elif not follow_part_upgrades and connected:
+		EventBus.part_upgraded.disconnect(_on_part_upgraded)
+
+
+func _on_part_upgraded(part: StringName, level: int) -> void:
+	var index := ShipPartDefinition.SLOT_KEYS.find(part)
+	if index < 0 or hull == null:
+		return
+	set_part_level(index as ShipPartDefinition.Slot, level)
 
 
 func build(new_hull: ShipHullDefinition, new_state: ShipInstanceState = null) -> void:
@@ -65,7 +96,7 @@ func build(new_hull: ShipHullDefinition, new_state: ShipInstanceState = null) ->
 
 
 ## Sets a part level (1..3), swaps that part's model and re-resolves stats.
-## Upgrade rules and costs belong to ShipUpgradeService (not in M1).
+## Upgrade rules and costs live in UpgradeService.
 func set_part_level(slot: ShipPartDefinition.Slot, level: int) -> void:
 	if hull == null:
 		return
@@ -186,8 +217,8 @@ static func _make_placeholder(slot: ShipPartDefinition.Slot) -> Node3D:
 	match slot:
 		ShipPartDefinition.Slot.BODY:
 			var capsule := CapsuleMesh.new()
-			capsule.radius = 0.6
-			capsule.height = 2.2
+			capsule.radius = 0.26
+			capsule.height = 1.1
 			_add_mesh(root, capsule, COLOR_CREAM, Vector3.ZERO, true)
 			for socket_name: String in PLACEHOLDER_SOCKETS:
 				_add_marker(root, socket_name, PLACEHOLDER_SOCKETS[socket_name])
@@ -196,22 +227,22 @@ static func _make_placeholder(slot: ShipPartDefinition.Slot) -> Node3D:
 		ShipPartDefinition.Slot.HEAD:
 			var cone := CylinderMesh.new()
 			cone.top_radius = 0.0
-			cone.bottom_radius = 0.45
-			cone.height = 0.9
-			_add_mesh(root, cone, COLOR_ACCENT, Vector3(0.0, 0.0, -0.45), true)
-			_add_marker(root, MINING_ORIGIN, Vector3(0.0, 0.0, -0.95))
+			cone.bottom_radius = 0.22
+			cone.height = 0.895
+			_add_mesh(root, cone, COLOR_ACCENT, Vector3(0.0, 0.0, -0.4475), true)
+			_add_marker(root, MINING_ORIGIN, Vector3(0.0, 0.02, -0.895))
 		ShipPartDefinition.Slot.WINGS:
 			var box := BoxMesh.new()
-			box.size = Vector3(3.2, 0.12, 0.9)
+			box.size = Vector3(1.3, 0.06, 0.45)
 			_add_mesh(root, box, COLOR_CREAM, Vector3.ZERO, false)
 		ShipPartDefinition.Slot.ENGINE:
 			var nozzle := CylinderMesh.new()
-			nozzle.top_radius = 0.35
-			nozzle.bottom_radius = 0.45
-			nozzle.height = 0.6
-			_add_mesh(root, nozzle, COLOR_ACCENT, Vector3(0.0, 0.0, 0.3), true)
-			_add_marker(root, ENGINE_TRAIL_PREFIX + "0", Vector3(-0.2, 0.0, 0.65))
-			_add_marker(root, ENGINE_TRAIL_PREFIX + "1", Vector3(0.2, 0.0, 0.65))
+			nozzle.top_radius = 0.16
+			nozzle.bottom_radius = 0.2
+			nozzle.height = 0.35
+			_add_mesh(root, nozzle, COLOR_ACCENT, Vector3(0.0, 0.0, 0.175), true)
+			_add_marker(root, ENGINE_TRAIL_PREFIX + "0", Vector3(-0.112, 0.028, 0.35))
+			_add_marker(root, ENGINE_TRAIL_PREFIX + "1", Vector3(0.112, 0.028, 0.35))
 	return root
 
 

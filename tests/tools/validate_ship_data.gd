@@ -3,20 +3,20 @@ extends SceneTree
 ## (other resources there are skipped), runs
 ## ShipDataValidator and ShipStatsResolver, exits 0 on pass, 1 on failure.
 ##
-##   godot --headless --path . -s res://tests/tools/validate_ship_data.gd [-- --authored-level=N --require-assets]
-## Defaults are the M1 settings: authored level 1, missing models = warnings.
+##   godot --headless --path . -s res://tests/tools/validate_ship_data.gd [-- --mode=mvp|contract --no-assets]
+## Defaults: mode mvp (D-011: credits-only L2/L3) and models required.
 
 const SHIPS_DIR := "res://data/ships"
 
 
 func _init() -> void:
-	var authored := 1
-	var require_assets := false
+	var mode := ShipDataValidator.Mode.MVP
+	var require_assets := true
 	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--authored-level="):
-			authored = int(arg.get_slice("=", 1))
-		elif arg == "--require-assets":
-			require_assets = true
+		if arg == "--mode=contract":
+			mode = ShipDataValidator.Mode.CONTRACT
+		elif arg == "--no-assets":
+			require_assets = false
 
 	var hulls: Array[ShipHullDefinition] = []
 	for file in DirAccess.get_files_at(SHIPS_DIR):
@@ -29,16 +29,17 @@ func _init() -> void:
 			continue
 		hulls.append(hull)
 
-	print("Validating %d hull(s), authored level %d, require assets %s" % [hulls.size(), authored, require_assets])
-	var result := ShipDataValidator.validate_catalog(hulls, authored, require_assets)
+	print("Validating %d hull(s), mode %s, require assets %s" % [hulls.size(), ShipDataValidator.Mode.keys()[mode], require_assets])
+	var result := ShipDataValidator.validate_catalog(hulls, mode, require_assets)
 	if not str(result).is_empty():
 		print(str(result))
 	for hull in hulls:
-		print("Resolved stats %s (grade %s, all parts L1):" % [hull.id, Grade.to_label(hull.native_grade)])
-		var stats := ShipStatsResolver.resolve(hull, ShipInstanceState.create_for(hull))
-		for stat: StringName in stats.keys():
-			var cap := " (cap %s)" % hull.upgrade_caps[stat] if hull.upgrade_caps.has(stat) else ""
-			print("  %-20s %8.2f%s" % [stat, stats[stat], cap])
+		for n in range(1, hull.authored_up_to_level + 1):
+			print("Resolved stats %s (grade %s, all parts L%d):" % [hull.id, Grade.to_label(hull.native_grade), n])
+			var stats := ShipStatsResolver.resolve(hull, ShipInstanceState.create_for(hull, n))
+			for stat: StringName in stats.keys():
+				var cap := " (cap %s)" % hull.upgrade_caps[stat] if hull.upgrade_caps.has(stat) else ""
+				print("  %-20s %8.2f%s" % [stat, stats[stat], cap])
 	if hulls.is_empty():
 		printerr("FAIL: no hulls found")
 		quit(1)

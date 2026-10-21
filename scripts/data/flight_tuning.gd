@@ -55,7 +55,7 @@ extends Resource
 @export_range(0.05, 1.0, 0.01) var limp_speed_mult: float = 0.35  ## yakıt 0'da tavan çarpanı
 
 @export_group("Mass")
-## M1 Laser-only: L1 parçalar 10 t + laser 0.3 + blaster 0.3 = 10.6 t (tasarım dokümanındaki 11.5 dört modül içindi)
+## MVP: 4 starter parts 3.7 t + laser 0.2 t = 3.9 t (feel 1.0 with empty cargo).
 @export_range(1.0, 100.0, 0.1) var reference_mass: float = 10.6  ## t, his = 1.0 olan kütle
 @export_range(0.0, 20.0, 0.1) var loadout_mass: float = 0.6  ## t, geçici: modül kütlesi (ModuleDefinition gelince)
 @export_range(0.0, 2.0, 0.05) var mass_exp_accel: float = 0.7

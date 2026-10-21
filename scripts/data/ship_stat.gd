@@ -29,5 +29,18 @@ const ALL: Array[StringName] = [
 ]
 
 
+## Stats where a smaller number is better: caps are floors, level order is descending.
+const LOWER_IS_BETTER: Array[StringName] = [MASS, FUEL_RATE]
+
+
+static func is_lower_better(stat: StringName) -> bool:
+	return LOWER_IS_BETTER.has(stat)
+
+
+## True when value a is at least as good as b for this stat.
+static func is_better_or_equal(stat: StringName, a: float, b: float) -> bool:
+	return a <= b if is_lower_better(stat) else a >= b
+
+
 static func is_valid(stat: StringName) -> bool:
 	return ALL.has(stat)

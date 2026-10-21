@@ -48,6 +48,8 @@ func test_fuel_stats_are_hull_base_values() -> void:
 
 
 func test_empty_l2_l3_do_not_change_base() -> void:
+	# Synthetic hull: the MVP starter data fills L2/L3, so use empty levels here.
+	hull = TestShips.make_hull(hull.base_stats.duplicate(), hull.upgrade_caps.duplicate())
 	var l3 := ShipStatsResolver.resolve(hull, ShipInstanceState.create_for(hull, 3))
 	for stat: StringName in hull.base_stats.keys():
 		var cap: float = hull.upgrade_caps.get(stat, INF)
@@ -63,7 +65,7 @@ func test_add_then_mul_then_cap() -> void:
 	h.upgrade_caps[ShipStat.FLYING_SPEED] = 20.0
 	stats = ShipStatsResolver.resolve(h, ShipInstanceState.create_for(h))
 	assert_almost_eq(stats[ShipStat.FLYING_SPEED], 20.0, 0.0001, "clamped to cap")
-	var raw := ShipStatsResolver.resolve_raw(h, ShipInstanceState.create_for(h), false)
+	var raw := ShipStatsResolver.resolve(h, ShipInstanceState.create_for(h), false)
 	assert_almost_eq(raw[ShipStat.FLYING_SPEED], 36.0, 0.0001, "raw is not clamped")
 
 
@@ -85,7 +87,12 @@ func test_stat_only_in_modifiers_is_resolved() -> void:
 
 
 func test_instance_state_upgrade_limit() -> void:
+	hull = TestShips.make_hull({}, {})
 	var state := ShipInstanceState.create_for(hull)
-	assert_true(state.can_upgrade(&"engine"))
+	assert_true(state.can_upgrade(&"engine", hull.engine))
 	state.part_levels[&"engine"] = 3
-	assert_false(state.can_upgrade(&"engine"))
+	assert_false(state.can_upgrade(&"engine", hull.engine))
+	state.part_levels[&"engine"] = 1
+	var m1_engine := hull.engine.duplicate() as ShipPartDefinition
+	m1_engine.authored_up_to_level = 1
+	assert_false(state.can_upgrade(&"engine", m1_engine), "authored_up_to_level limits upgrades")

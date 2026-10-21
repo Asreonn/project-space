@@ -1,11 +1,14 @@
 class_name ShipController
 extends CharacterBody3D
-## M1 uçuş kontrolcüsü. Spec: docs/design/m1_flight_tuning.md (§1).
-## - Burun fareye döner (dönüş hızı maneuver_speed ile sınırlı) veya şema B: A/D dönüş.
-## - İtki burun yönünde; yanal tutuş (grip), boyuna sönüm, Space fren / Space+W drift, Shift boost.
-## - Bütün sönümler exp(-k*dt): kare oranından bağımsız. Oynanış düzlemi XZ, Y = 0.
-## Statlar (flying_speed, maneuver_speed, mass, fuel_*, hull) get_stat() adapter'ından okunur:
-## bugün FlightTuning.default_*; ShipAssembler/ShipStatsResolver gelince set_resolved_stats().
+## Player flight controller. Spec: docs/briefs/mvp_balance.md §2 + ps-design
+## m1_flight_tuning.md §1. CharacterBody3D locked to the XZ plane (Y = 0).
+## - Nose turns to the mouse, turn rate capped by maneuver_speed (Wings);
+##   scheme B (tuning.control_scheme = 1): W/S thrust + A/D turn.
+## - Thrust along the nose; lateral grip, coast damping, Space brake,
+##   Space + W drift, Shift boost. Every damping is exp(-k*dt) (frame-rate independent).
+## Stats come from ShipAssembler.stats_changed / ShipStatsResolver through
+## set_resolved_stats(); FlightTuning.default_* are only a fallback. No mesh binding.
+## MVP: fuel off (boost = duration + cooldown only), no collision damage.
 
 signal fuel_changed(fuel: float, capacity: float)
 signal hull_changed(hull: float, max_hull: float)
@@ -27,10 +30,18 @@ const STAT_HULL := &"hull"
 const MIN_AIM_DIST_SQ := 0.04
 
 @export var tuning: FlightTuning
-## false iken in_* alanları dışarıdan (autopilot / test) yazılır.
+## false: the in_* fields are written from outside (autopilot / tests).
 @export var use_player_input: bool = true
+## MVP has no fuel (brief §2): false = no burn, no limp mode, boost is free.
+@export var fuel_enabled: bool = false
+## Optional: when set, the ship builds its own ShipAssembler (player_ship.tscn
+## standalone). Leave empty when a coordinator (MvpGame) calls assembler.build().
+@export var hull_definition: ShipHullDefinition
+@export var assembler_path: NodePath = ^"Visual/ShipAssembler"
+## Optional VFX node with set_thrust(amount: float, boosting: bool) (vfx brief).
+@export var engine_trail_path: NodePath
 
-## Sanal girdi (oyuncu veya autopilot doldurur).
+## Virtual input (player or autopilot).
 var in_thrust: float = 0.0  ## -1..1 (S..W)
 var in_strafe: float = 0.0  ## -1..1 (A..D); şema B'de dönüş
 var in_brake: bool = false
@@ -42,34 +53,53 @@ var mode: Mode = Mode.NORMAL
 var boosting: bool = false
 var fuel: float = 0.0
 var hull: float = 0.0
-var cargo_mass: float = 0.0  ## t; CargoStorage gelince oradan beslenir
+var cargo_mass: float = 0.0  ## t; set by the cargo owner (GameState / MvpGame)
+## true while the dock panel is open: input is ignored and the ship brakes to a stop.
+var input_locked: bool = false
+var assembler: ShipAssembler
+var ship_state: ShipInstanceState
 
-var _stats: Dictionary = {}
+var _stats: Dictionary[StringName, float] = {}
 var _yaw_vel: float = 0.0
 var _boost_t: float = 0.0
 var _boost_cd: float = 0.0
 var _spawn: Transform3D
+var _engine_trail: Node
 
 
 func _ready() -> void:
+	add_to_group(&"player")
 	if tuning == null:
 		tuning = FlightTuning.new()
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	_spawn = global_transform
+	assembler = get_node_or_null(assembler_path) as ShipAssembler
+	if engine_trail_path != NodePath():
+		_engine_trail = get_node_or_null(engine_trail_path)
+	EventBus.station_panel_toggled.connect(_on_station_panel_toggled)
+	EventBus.ship_stats_changed.connect(set_resolved_stats)
+	if assembler != null and hull_definition != null:
+		ship_state = ShipInstanceState.create_for(hull_definition)
+		assembler.stats_changed.connect(set_resolved_stats)
+		assembler.build(hull_definition, ship_state)
 	fuel = get_stat(STAT_FUEL_CAPACITY)
 	hull = get_stat(STAT_HULL)
 
 
+func _on_station_panel_toggled(is_open: bool) -> void:
+	input_locked = is_open
+
+
 # --- Stat adapter -----------------------------------------------------------
 
-## ShipStatsResolver.resolve(hull_def, state) çıktısını buraya ver. Boş sözlük = FlightTuning varsayılanları.
+## Output of ShipStatsResolver.resolve(hull, state). Empty = FlightTuning defaults.
 func set_resolved_stats(stats: Dictionary) -> void:
-	_stats = stats.duplicate()
+	_stats.assign(stats)
 
 
 func get_stat(key: StringName) -> float:
 	if _stats.has(key):
-		return float(_stats[key])
+		return _stats[key]
 	match key:
 		STAT_FLYING_SPEED: return tuning.default_flying_speed
 		STAT_MANEUVER_SPEED: return tuning.default_maneuver_speed
@@ -96,7 +126,7 @@ func get_speed_cap() -> float:
 	var cap := get_stat(STAT_FLYING_SPEED)
 	if boosting:
 		cap *= tuning.boost_speed_mult
-	if fuel <= 0.0:
+	if fuel_enabled and fuel <= 0.0:
 		cap *= tuning.limp_speed_mult
 	return cap
 
@@ -110,9 +140,16 @@ func get_forward() -> Vector3:
 # --- Simulation -------------------------------------------------------------
 
 func _physics_process(dt: float) -> void:
-	if use_player_input:
+	if input_locked:
+		in_thrust = 0.0
+		in_strafe = 0.0
+		in_boost = false
+		in_brake = true
+	elif use_player_input:
 		_read_player_input()
 	_step(dt)
+	if _engine_trail != null and _engine_trail.has_method(&"set_thrust"):
+		_engine_trail.call(&"set_thrust", maxf(in_thrust, 0.0), boosting)
 
 
 func _read_player_input() -> void:
@@ -234,14 +271,15 @@ func _update_boost(dt: float) -> void:
 	var want := in_boost and in_thrust > 0.0 and mode != Mode.BRAKE
 	if boosting:
 		_boost_t += dt
-		if not want or _boost_t >= tuning.boost_max_duration or fuel <= 0.0:
+		if not want or _boost_t >= tuning.boost_max_duration or (fuel_enabled and fuel <= 0.0):
 			boosting = false
 			_boost_cd = tuning.boost_cooldown
 			boost_ended.emit()
-	elif want and _boost_cd <= 0.0 and fuel >= tuning.boost_min_fuel:
+	elif want and _boost_cd <= 0.0 and (not fuel_enabled or fuel >= tuning.boost_min_fuel):
 		boosting = true
 		_boost_t = 0.0
-		_set_fuel(fuel - tuning.boost_start_fuel)
+		if fuel_enabled:
+			_set_fuel(fuel - tuning.boost_start_fuel)
 		boost_started.emit()
 
 
@@ -250,7 +288,7 @@ func get_boost_cooldown() -> float:
 
 
 func _burn_fuel(dt: float) -> void:
-	if fuel <= 0.0:
+	if not fuel_enabled or fuel <= 0.0:
 		return
 	var throttle := clampf(absf(in_thrust) + 0.5 * absf(in_strafe), 0.0, 1.0)
 	if mode == Mode.BRAKE:
@@ -294,7 +332,7 @@ func apply_damage(amount: float) -> void:
 		respawn.call_deferred()
 
 
-## M1: maliyetsiz respawn; yakıt ve gövde dolar (yakıt dolumu yalnızca burada).
+## Free respawn (M1); hull and fuel refill. Not used in the MVP (no damage).
 func respawn(at: Transform3D = _spawn) -> void:
 	global_transform = at
 	velocity = Vector3.ZERO

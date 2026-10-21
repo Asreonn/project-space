@@ -1,4 +1,6 @@
 """Project Space - asteroids S/M/L x 3 variants + ore-bearing variants + break-apart chunks.
+Ore colour by type: regular rocks carry a thin orange seam (ore_common_solid), the asteroid_ore_* variants
+recessed blue glowing veins (crystal_blue_solid), per docs/briefs/mvp.md §3.
 
 Headless:  blender -b -P asteroids.py -- [--only asteroid_m_02] [--no-export]
 Output:    <ROOT>/assets/models/asteroids/<name>.glb + <name>_collision.glb
@@ -23,9 +25,9 @@ ROOT=os.environ.get("PS_ROOT") or os.path.abspath(os.path.join(HERE,"..","..",".
 OUT=f"{ROOT}/assets/models/asteroids"
 
 # name: (archetype, radius m, target tris, seed, ore)
-# radius = horizontal half-extent (gameplay radius). L matches m1_mining.json (rock 3.5 m, crystal 4.5 m).
-SPEC = {
- "asteroid_s_01":("boulder",0.9,140,11,False), "asteroid_s_02":("angular",1.1,140,12,False), "asteroid_s_03":("twin",1.2,140,13,False),
+# radius = horizontal half-extent (gameplay radius).
+SPEC = {   # binding: docs/briefs/mvp.md §3 radii S 0.9-1.2, M 2.2-2.8, L 3.5-4.5 m (ship 1.84 m)
+ "asteroid_s_01":("boulder",0.9,140,11,False), "asteroid_s_02":("angular",1.05,140,12,False), "asteroid_s_03":("twin",1.2,140,13,False),
  "asteroid_m_01":("boulder",2.2,290,21,False), "asteroid_m_02":("angular",2.5,290,22,False), "asteroid_m_03":("twin",2.8,290,23,False),
  "asteroid_l_01":("boulder",3.5,480,31,False), "asteroid_l_02":("angular",4.0,480,32,False), "asteroid_l_03":("twin",4.5,480,33,False),
  "asteroid_ore_m_01":("boulder",2.5,300,41,True), "asteroid_ore_l_01":("angular",4.0,480,42,True),
@@ -102,6 +104,10 @@ def make_rock(name, arch, R, target, seed, ore, mats):
         else: cell=C.ROCK_M
         cells.append(cell)
     vein_faces=set(); vein_centres=[]
+    if not ore:   # every rock shows one thin flush glowing ore seam (narrow; the ore variants carry the big recessed veins) across its top (readable top-down)
+        n=Vector((rnd.uniform(-1,1),rnd.uniform(-1,1),0.15)).normalized()
+        for f in bm.faces:
+            if f.normal.z>-0.1 and abs(f.calc_center_median().dot(n))<0.035*R: cells[f.index]=C.ORE; vein_faces.add(f.index)
     if ore:
         planes=[Vector((rnd.uniform(-1,1),rnd.uniform(-1,1),rnd.uniform(-0.3,0.3))).normalized() for _ in range(2)]
         sel=[f for f in bm.faces if any(abs(f.calc_center_median().dot(n))<0.10*R for n in planes) and f.normal.z>-0.3]
@@ -110,7 +116,7 @@ def make_rock(name, arch, R, target, seed, ore, mats):
         selset=set(sel); newside=set(res["faces"])
         # rebuild cell list: original faces keep their cell (bmesh keeps order for old faces, new faces appended)
         cells=cells+[C.ROCK_D]*(len(bm.faces)-len(cells))
-        for f in sel: cells[f.index]=C.ORE; vein_faces.add(f.index)
+        for f in sel: cells[f.index]=C.GLOW; vein_faces.add(f.index)   # blue = crystal_blue_solid (mvp.md: veined variants drop crystals)
         # vein socket candidates
         vein_centres=[(f.calc_center_median(),f.normal.copy()) for f in sel if f.normal.z>0.0]
     ob=C.mesh_from_bm(bm,name,f"{name}_mesh",mats,cells,soft=0.18); bm.free()
