@@ -17,7 +17,9 @@ uniform vec3 star_tint : source_color = vec3(1.0, 0.93, 0.86);
 uniform float nebula_density : hint_range(0.0, 2.0) = 1.0;
 uniform float nebula_scale = 0.018;       // 1 / world meters
 uniform float nebula_warp : hint_range(0.0, 3.0) = 1.2;
-uniform float nebula_brightness : hint_range(0.0, 2.0) = 0.85;
+uniform float nebula_brightness : hint_range(0.0, 2.0) = 0.68;
+// < 1 pulls the clouds towards grey so ship / pickups keep their contrast.
+uniform float nebula_saturation : hint_range(0.0, 1.5) = 0.78;
 uniform float star_density : hint_range(0.0, 1.0) = 0.22;
 uniform float star_brightness : hint_range(0.0, 4.0) = 1.35;
 uniform float twinkle_speed = 1.3;
@@ -33,6 +35,9 @@ uniform float parallax_stars_near = 0.86;
 
 // Set by space_background.gd every frame.
 uniform vec2 camera_xz = vec2(0.0);
+// Orthographic cameras see the backdrop at play-plane scale; the script sets this
+// > 1 so stars / clouds keep the same on-screen size as with the perspective camera.
+uniform float sample_scale = 1.0;
 uniform float drift_speed = 0.15;          // slow ambient drift (m/s)
 
 varying vec2 world_xz;
@@ -93,8 +98,9 @@ float star_layer(vec2 p, float cell, float density, float t) {
 
 void fragment() {
 	vec2 drift = vec2(TIME * drift_speed, TIME * drift_speed * 0.35);
-	vec2 p_far = world_xz - camera_xz * parallax_nebula_far + drift * 0.5;
-	vec2 p_near = world_xz - camera_xz * parallax_nebula_near + drift;
+	vec2 local = (world_xz - camera_xz) * sample_scale;
+	vec2 p_far = local + camera_xz * (1.0 - parallax_nebula_far) + drift * 0.5;
+	vec2 p_near = local + camera_xz * (1.0 - parallax_nebula_near) + drift;
 
 	// Nebula: domain-warped fbm, two depths.
 	vec2 q = p_far * nebula_scale;
@@ -110,6 +116,8 @@ void fragment() {
 	col = mix(col, color_warm, clamp(wisp * (0.35 + body) * 1.2, 0.0, 1.0) * 0.7);
 	float hot = clamp(wisp * body, 0.0, 1.0);
 	col += color_hot * hot * hot * hot * 0.35;
+	float luma = dot(col, vec3(0.299, 0.587, 0.114));
+	col = mix(vec3(luma), col, nebula_saturation);
 	col = mix(color_void, col, nebula_brightness);
 
 	// Dust lanes darken the nebula a little for depth.
@@ -119,8 +127,8 @@ void fragment() {
 	}
 
 	// Stars: far small dense, near sparse brighter.
-	vec2 s_far = world_xz - camera_xz * parallax_stars_far;
-	vec2 s_near = world_xz - camera_xz * parallax_stars_near;
+	vec2 s_far = local + camera_xz * (1.0 - parallax_stars_far);
+	vec2 s_near = local + camera_xz * (1.0 - parallax_stars_near);
 	float stars = star_layer(s_far, 0.9, star_density, TIME) * 0.6;
 	stars += star_layer(s_near, 2.3, star_density * 0.7, TIME + 3.0);
 	// Fewer stars inside dense nebula, keeps the clouds soft.

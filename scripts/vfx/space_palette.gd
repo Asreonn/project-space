@@ -10,7 +10,8 @@ extends Resource
 @export var color_hot: Color = Color(1.0, 0.72, 0.42)
 @export var star_tint: Color = Color(1.0, 0.93, 0.86)
 @export_range(0.0, 2.0) var nebula_density: float = 1.0
-@export_range(0.0, 2.0) var nebula_brightness: float = 0.8
+@export_range(0.0, 2.0) var nebula_brightness: float = 0.68
+@export_range(0.0, 1.5) var nebula_saturation: float = 0.78
 @export_range(0.0, 1.0) var star_density: float = 0.22
 
 @export_group("Planet")
@@ -32,6 +33,7 @@ func apply_to_background(mat: ShaderMaterial) -> void:
 	mat.set_shader_parameter(&"star_tint", _rgb(star_tint))
 	mat.set_shader_parameter(&"nebula_density", nebula_density)
 	mat.set_shader_parameter(&"nebula_brightness", nebula_brightness)
+	mat.set_shader_parameter(&"nebula_saturation", nebula_saturation)
 	mat.set_shader_parameter(&"star_density", star_density)
 
 
