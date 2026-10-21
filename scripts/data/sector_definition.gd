@@ -7,6 +7,7 @@ extends Resource
 @export var rng_seed: int = 1
 @export var station_position: Vector3 = Vector3.ZERO
 @export var player_spawn: Vector3 = Vector3(0.0, 0.0, 18.0)
+@export var dock_radius: float = 5.0 ## m (station dock Area3D)
 ## Playable radius around the station; past boundary_radius the ship is pushed back.
 @export var play_radius: float = 120.0
 @export var boundary_radius: float = 130.0
