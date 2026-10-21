@@ -29,6 +29,8 @@ const MIN_AIM_DIST_SQ := 0.04
 @export var tuning: FlightTuning
 ## false iken in_* alanları dışarıdan (autopilot / test) yazılır.
 @export var use_player_input: bool = true
+## MVP has no fuel (PS Game Designer): false = no burn, no limp mode. [MVP integration]
+@export var fuel_enabled: bool = true
 
 ## Sanal girdi (oyuncu veya autopilot doldurur).
 var in_thrust: float = 0.0  ## -1..1 (S..W)
@@ -44,7 +46,7 @@ var fuel: float = 0.0
 var hull: float = 0.0
 var cargo_mass: float = 0.0  ## t; CargoStorage gelince oradan beslenir
 
-var _stats: Dictionary = {}
+var _stats: Dictionary[StringName, float] = {}
 var _yaw_vel: float = 0.0
 var _boost_t: float = 0.0
 var _boost_cd: float = 0.0
@@ -64,12 +66,12 @@ func _ready() -> void:
 
 ## ShipStatsResolver.resolve(hull_def, state) çıktısını buraya ver. Boş sözlük = FlightTuning varsayılanları.
 func set_resolved_stats(stats: Dictionary) -> void:
-	_stats = stats.duplicate()
+	_stats.assign(stats)
 
 
 func get_stat(key: StringName) -> float:
 	if _stats.has(key):
-		return float(_stats[key])
+		return _stats[key]
 	match key:
 		STAT_FLYING_SPEED: return tuning.default_flying_speed
 		STAT_MANEUVER_SPEED: return tuning.default_maneuver_speed
@@ -241,7 +243,8 @@ func _update_boost(dt: float) -> void:
 	elif want and _boost_cd <= 0.0 and fuel >= tuning.boost_min_fuel:
 		boosting = true
 		_boost_t = 0.0
-		_set_fuel(fuel - tuning.boost_start_fuel)
+		if fuel_enabled:
+			_set_fuel(fuel - tuning.boost_start_fuel)
 		boost_started.emit()
 
 
@@ -250,7 +253,7 @@ func get_boost_cooldown() -> float:
 
 
 func _burn_fuel(dt: float) -> void:
-	if fuel <= 0.0:
+	if not fuel_enabled or fuel <= 0.0:
 		return
 	var throttle := clampf(absf(in_thrust) + 0.5 * absf(in_strafe), 0.0, 1.0)
 	if mode == Mode.BRAKE:
