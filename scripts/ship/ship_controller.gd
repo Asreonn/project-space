@@ -38,8 +38,10 @@ const MIN_AIM_DIST_SQ := 0.04
 ## standalone). Leave empty when a coordinator (MvpGame) calls assembler.build().
 @export var hull_definition: ShipHullDefinition
 @export var assembler_path: NodePath = ^"Visual/ShipAssembler"
-## Optional VFX node with set_thrust(amount: float, boosting: bool) (vfx brief).
-@export var engine_trail_path: NodePath
+## Optional VFX node with set_thrust(amount: float, boosting: bool)
+## (vfx/mvp-effects scenes/vfx/engine_trail.tscn, instanced as Visual/EngineTrail).
+## Missing node = no call; any node named EngineTrail under the ship also works.
+@export var engine_trail_path: NodePath = ^"Visual/EngineTrail"
 
 ## Virtual input (player or autopilot).
 var in_thrust: float = 0.0  ## -1..1 (S..W)
@@ -74,8 +76,7 @@ func _ready() -> void:
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	_spawn = global_transform
 	assembler = get_node_or_null(assembler_path) as ShipAssembler
-	if engine_trail_path != NodePath():
-		_engine_trail = get_node_or_null(engine_trail_path)
+	_engine_trail = _find_engine_trail()
 	EventBus.station_panel_toggled.connect(_on_station_panel_toggled)
 	EventBus.ship_stats_changed.connect(set_resolved_stats)
 	if assembler != null and hull_definition != null:
@@ -149,7 +150,22 @@ func _physics_process(dt: float) -> void:
 		_read_player_input()
 	_step(dt)
 	if _engine_trail != null and _engine_trail.has_method(&"set_thrust"):
-		_engine_trail.call(&"set_thrust", maxf(in_thrust, 0.0), boosting)
+		_engine_trail.call(&"set_thrust", get_thrust_amount(), boosting)
+
+
+## Engine trail drive value: flat speed / cruise speed (flying_speed), 0..1.
+func get_thrust_amount() -> float:
+	var flat := Vector2(velocity.x, velocity.z).length()
+	return clampf(flat / maxf(get_stat(STAT_FLYING_SPEED), 0.1), 0.0, 1.0)
+
+
+func _find_engine_trail() -> Node:
+	var n: Node = null
+	if engine_trail_path != NodePath():
+		n = get_node_or_null(engine_trail_path)
+	if n == null:
+		n = find_child("EngineTrail", true, false)
+	return n
 
 
 func _read_player_input() -> void:

@@ -5,6 +5,8 @@
 [ext_resource type="Script" path="res://scripts/core/ship_assembler.gd" id="3_asm"]
 [ext_resource type="Script" path="res://scripts/mining/mining_laser.gd" id="4_laser"]
 [ext_resource type="Resource" path="res://data/modules/laser_mk1.tres" id="5_ldef"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/engine_trail.tscn" id="6_trail"]
+[ext_resource type="Script" path="res://scripts/debug/debug_cheats.gd" id="7_cheats"]
 
 [sub_resource type="BoxShape3D" id="Shape_hull"]
 size = Vector3(1.4, 0.6, 1.84)
@@ -24,6 +26,11 @@ shape = SubResource("Shape_hull")
 [node name="ShipAssembler" type="Node3D" parent="Visual"]
 script = ExtResource("3_asm")
 
+[node name="EngineTrail" parent="Visual" instance=ExtResource("6_trail")]
+
 [node name="MiningLaser" type="Node3D" parent="."]
 script = ExtResource("4_laser")
 definition = ExtResource("5_ldef")
+
+[node name="DebugCheats" type="Node" parent="."]
+script = ExtResource("7_cheats")

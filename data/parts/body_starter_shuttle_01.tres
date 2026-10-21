@@ -65,7 +65,7 @@ cost = Array[ExtResource("2_7li4u")]([SubResource("Resource_vh6mp")])
 [sub_resource type="Resource" id="Resource_7sq4d"]
 script = ExtResource("2_7li4u")
 item_id = &"credits"
-amount = 850
+amount = 420
 
 [sub_resource type="Resource" id="Resource_i2k82"]
 script = ExtResource("3_wqgax")

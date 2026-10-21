@@ -31,8 +31,10 @@ const SELL_S := 2.0 ## open panel, "sell all"
 const SHOP_S_PER_BUY := 3.0
 const RETURN_WHEN_FREE_BELOW := 2 ## u; do not start a new asteroid for less
 
-## Upgrade buy order when several parts are affordable.
-const ORDER_MINER: Array[StringName] = [&"head", &"body", &"engine", &"wings"]
+## Reference buy plan ("economy first" player): mining power and cargo first,
+## then the first L3 (Head), then mobility. The sim saves for the next step and
+## buys it as soon as it is affordable (several per dock if credits allow).
+const PLAN_ECONOMY_FIRST: Array[StringName] = [&"head", &"body", &"head", &"engine", &"wings", &"body", &"engine", &"wings"]
 
 var hull: ShipHullDefinition
 var laser: MiningLaserDefinition
@@ -62,6 +64,7 @@ class Result:
 	var runs: Array[RunRow] = []
 	var buys: Array[Dictionary] = []
 	var first_upgrade_t: float = -1.0
+	var first_l3_t: float = -1.0
 	var all_l2_t: float = -1.0
 	var full_l3_t: float = -1.0
 	var total_cost: int = 0
@@ -121,7 +124,7 @@ func _travel(d: float, v: float, eff: float) -> float:
 	return d / maxf(v * eff, 0.1) + flight.accel_time_to_max * 0.5
 
 
-func simulate(seed_value: int, max_time_s: float = 5400.0, order: Array[StringName] = ORDER_MINER) -> Result:
+func simulate(seed_value: int, max_time_s: float = 5400.0, plan: Array[StringName] = PLAN_ECONOMY_FIRST) -> Result:
 	var res := Result.new()
 	res.total_cost = total_upgrade_cost()
 	var rng := RandomNumberGenerator.new()
@@ -140,6 +143,7 @@ func simulate(seed_value: int, max_time_s: float = 5400.0, order: Array[StringNa
 	var credits := _i(sector["starting_credits"])
 	var t := 0.0
 	var run_i := 0
+	var step := 0
 	var out_d := _f(sector["ring_min_radius"]) + (_f(sector["ring_max_radius"]) - _f(sector["ring_min_radius"])) * FIELD_DEPTH - STANDOFF_M
 	while t < max_time_s:
 		var stats := ShipStatsResolver.resolve(hull, state)
@@ -189,21 +193,24 @@ func simulate(seed_value: int, max_time_s: float = 5400.0, order: Array[StringNa
 		fly += _travel(out_d * RETURN_EXTRA, v, TRAVEL_EFF)
 		credits += value
 		var dock := DOCK_S + SELL_S
-		var bought := true
-		while bought:
-			bought = false
-			for part: StringName in _order_candidates(state, order):
-				var c := next_cost(state, part)
-				if c >= 0 and c <= credits:
-					credits -= c
-					state.part_levels[part] += 1
-					dock += SHOP_S_PER_BUY
-					var at := t + fly + mine + dock
-					res.buys.append({"part": part, "level": state.part_levels[part], "t": at, "cost": c})
-					if res.first_upgrade_t < 0.0:
-						res.first_upgrade_t = at
-					bought = true
-					break
+		while step < plan.size():
+			var part: StringName = plan[step]
+			var c := next_cost(state, part)
+			if c < 0:
+				step += 1
+				continue
+			if c > credits:
+				break
+			credits -= c
+			state.part_levels[part] += 1
+			step += 1
+			dock += SHOP_S_PER_BUY
+			var at := t + fly + mine + dock
+			res.buys.append({"part": part, "level": state.part_levels[part], "t": at, "cost": c})
+			if res.first_upgrade_t < 0.0:
+				res.first_upgrade_t = at
+			if res.first_l3_t < 0.0 and state.part_levels[part] >= ShipHullDefinition.MAX_PART_LEVEL:
+				res.first_l3_t = at
 		row.fly_t = fly
 		row.mine_t = mine
 		row.dock_t = dock
@@ -219,16 +226,6 @@ func simulate(seed_value: int, max_time_s: float = 5400.0, order: Array[StringNa
 			res.full_l3_t = t
 			break
 	return res
-
-
-## Lowest-level parts first (no L3 before every part is L2), then `order`.
-func _order_candidates(state: ShipInstanceState, order: Array[StringName]) -> Array[StringName]:
-	var lo := _min_level(state)
-	var out: Array[StringName] = []
-	for p: StringName in order:
-		if state.part_levels[p] == lo:
-			out.append(p)
-	return out
 
 
 func _min_level(state: ShipInstanceState) -> int:

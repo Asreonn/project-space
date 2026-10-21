@@ -123,6 +123,42 @@ func test_beam_breaks_small_asteroid_then_sell_and_upgrade() -> void:
 	assert_gt(laser.damage_per_second(), old_dps * 1.29, "Head L2 dps +30%")
 
 
+func test_engine_trail_gets_speed_ratio_and_boost() -> void:
+	var trail := ship.get_node_or_null("Visual/EngineTrail") as EngineTrail
+	assert_not_null(trail, "player_ship instances scenes/vfx/engine_trail.tscn")
+	if trail == null:
+		return
+	await wait_physics_frames(3)
+	assert_gt(trail.nozzles.size(), 0, "trail found the FX_EngineTrail empties")
+	ship.in_thrust = 1.0
+	await wait_physics_frames(30)
+	assert_almost_eq(trail.thrust, ship.get_thrust_amount(), 0.05, "set_thrust(speed / flying_speed)")
+	assert_gt(trail.thrust, 0.5, "trail follows speed")
+	assert_eq(trail.boosting, ship.boosting)
+
+
+func test_beam_updated_every_physics_frame_while_on() -> void:
+	if not EventBus.has_signal(&"mining_beam_updated"):
+		pending("EventBus.mining_beam_updated not on this base yet (Engineer adds it)")
+		return
+	var count := [0]
+	var ends: Array[Vector3] = []
+	var cb := func(_origin: Node3D, end: Vector3) -> void:
+		count[0] += 1
+		ends.append(end)
+	EventBus.connect(&"mining_beam_updated", cb)
+	await wait_physics_frames(2)
+	laser.wants_fire = true
+	await wait_physics_frames(10)
+	laser.wants_fire = false
+	await wait_physics_frames(3)
+	EventBus.disconnect(&"mining_beam_updated", cb)
+	var n: int = count[0]
+	assert_between(n, 9, 11, "one update per physics frame while on")
+	if not ends.is_empty():
+		assert_almost_eq(ends[-1].distance_to(laser.beam_origin), laser.definition.beam_range, 0.05, "no hit: end at max range")
+
+
 static func _f(v: Variant) -> float:
 	var f: float = v
 	return f
