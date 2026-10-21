@@ -1,0 +1,31 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/vfx/vfx_lookdev.gd" id="1_script"]
+[ext_resource type="Environment" path="res://scenes/vfx/environment_space.tres" id="2_env"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/space_background.tscn" id="3_bg"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/post_fx.tscn" id="4_post"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/vfx_director.tscn" id="5_director"]
+
+[node name="VfxLookdev" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("2_env")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 20, 0)
+light_color = Color(1, 0.88, 0.76, 1)
+light_energy = 1.2
+shadow_enabled = true
+directional_shadow_max_distance = 60.0
+
+[node name="Camera" type="Camera3D" parent="."]
+fov = 35.0
+far = 400.0
+current = true
+
+[node name="SpaceBackground" parent="." instance=ExtResource("3_bg")]
+
+[node name="VfxDirector" parent="." instance=ExtResource("5_director")]
+
+[node name="PostFx" parent="." instance=ExtResource("4_post")]
