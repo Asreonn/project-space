@@ -120,6 +120,29 @@ func test_pacing_targets() -> void:
 	assert_between(f3, 0.0, FIRST_L3_MAX, "first L3 median %.0f s" % f3)
 
 
+func test_sim_bot_profile_matches_real_scene() -> void:
+	var sim := MvpBalanceSim.new()
+	sim.set_profile(MvpBalanceSim.PROFILE_BOT)
+	var runs: Array[float] = []
+	var credits: Array[float] = []
+	var firsts: Array[float] = []
+	for sd in SEEDS:
+		var r := sim.simulate(1000 + sd)
+		runs.append(r.runs[0].duration)
+		credits.append(float(r.runs[0].credits))
+		firsts.append(r.first_upgrade_t)
+	var m := MvpBalanceSim.MEASURED_REAL
+	for pair: Array in [["run", runs], ["credits", credits], ["first", firsts]]:
+		var key: String = pair[0]
+		var vals: Array[float] = []
+		var src: Array = pair[1]
+		vals.assign(src)
+		vals.sort()
+		var med := vals[vals.size() >> 1]
+		var real: float = m[key]
+		assert_almost_eq(med, real, real * 0.2, "sim bot %s vs real scene" % key)
+
+
 static func _mods(lvl: ShipPartLevel) -> Dictionary[StringName, float]:
 	var out: Dictionary[StringName, float] = {}
 	for m: StatModifier in lvl.modifiers:
