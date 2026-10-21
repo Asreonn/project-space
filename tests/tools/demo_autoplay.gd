@@ -20,12 +20,22 @@ var ship: ShipController
 var laser: MiningLaser
 var shots_dir: String = "user://mvp_demo"
 var _t: float = 0.0
+## --trace=<file.jsonl>: every 0.5 s, ship orientation data (ship-local z and
+## screen position of head/engine/sockets/beam origin/trails, velocity).
+var trace_path: String = ""
+var _trace_file: FileAccess
+var _trace_t: float = 0.0
+var _frame: int = 0
 
 
 func _ready() -> void:
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("--shots="):
 			shots_dir = arg.trim_prefix("--shots=")
+		elif arg.begins_with("--trace="):
+			trace_path = arg.trim_prefix("--trace=")
+	if trace_path != "":
+		_trace_file = FileAccess.open(trace_path, FileAccess.WRITE)
 	DirAccess.make_dir_recursive_absolute(shots_dir)
 	game = (load(SECTOR_SCENE) as PackedScene).instantiate() as MvpGame
 	add_child(game)
@@ -34,6 +44,11 @@ func _ready() -> void:
 
 func _process(dt: float) -> void:
 	_t += dt
+	_frame += 1
+	_trace_t += dt
+	if _trace_file != null and ship != null and _trace_t >= 0.5:
+		_trace_t = 0.0
+		_trace()
 	if _t > MAX_SECONDS:
 		push_warning("demo: time cap reached, quitting")
 		get_tree().quit()
@@ -241,6 +256,49 @@ func _shot(file_name: String) -> void:
 	var path := shots_dir.path_join(file_name + ".png")
 	var err := img.save_png(path)
 	_log("shot %s err=%d" % [path, err])
+
+
+func _trace() -> void:
+	var asm := game.assembler
+	var cam := game.camera
+	var vp := get_viewport().get_visible_rect().size
+	var body := asm.get_part_node(ShipPartDefinition.Slot.BODY)
+	var named: Dictionary[String, Node3D] = {
+		"center": ship,
+		"socket_head": body.find_child("Socket_Head", true, false) as Node3D,
+		"socket_engine": body.find_child("Socket_Engine", true, false) as Node3D,
+		"head": asm.get_part_node(ShipPartDefinition.Slot.HEAD),
+		"engine": asm.get_part_node(ShipPartDefinition.Slot.ENGINE),
+		"mining_origin": asm.get_mining_origin(),
+	}
+	var i := 0
+	for trail: Node3D in asm.get_engine_trail_points():
+		named["trail_%d" % i] = trail
+		i += 1
+	var rec := {
+		"t": snappedf(_t, 0.01), "frame": _frame,
+		"vel": [snappedf(ship.velocity.x, 0.01), snappedf(ship.velocity.z, 0.01)],
+		"nose": [snappedf(-ship.global_basis.z.x, 0.001), snappedf(-ship.global_basis.z.z, 0.001)],
+		"vel_dot_nose": snappedf(Vector3(ship.velocity.x, 0.0, ship.velocity.z).normalized().dot(-ship.global_basis.z), 0.01),
+		"visual_vs_ship_z_dot": snappedf((asm.get_parent() as Node3D).global_basis.z.dot(ship.global_basis.z), 0.001),
+		"beam": laser.firing,
+		"beam_origin_local_z": snappedf(ship.to_local(laser.beam_origin).z, 0.01),
+		"beam_end_screen": _screen(cam, laser.beam_end, vp),
+		"points": {},
+	}
+	var pts: Dictionary = rec["points"]
+	for key: String in named:
+		var n := named[key]
+		if n != null:
+			pts[key] = {"local_z": snappedf(ship.to_local(n.global_position).z, 0.01), "screen": _screen(cam, n.global_position, vp)}
+	_trace_file.store_line(JSON.stringify(rec))
+	_trace_file.flush()
+
+
+## Screen position as a fraction of the viewport (0..1), video-size independent.
+static func _screen(cam: Camera3D, p: Vector3, vp: Vector2) -> Array[float]:
+	var s := cam.unproject_position(p)
+	return [snappedf(s.x / vp.x, 0.0001), snappedf(s.y / vp.y, 0.0001)]
 
 
 func _log(msg: String) -> void:
