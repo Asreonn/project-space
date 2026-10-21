@@ -169,3 +169,12 @@ Görsel üretim sırasında oluşturulan `SpaceMiner_Visual_References.zip` ve `
 - Çok küçük fiziksel detayı UI ya da parlayan outline ile sürekli telafi etme.
 - Grade yükseldikçe **şekil** çeşitlenir fakat kamera yakınlaştırılması zorunlu olmaz.
 - **[AÇIK]** Mutlak poligon sayısı, texture çözünürlüğü ve performans bütçesi motor/cihaz testinden sonra sabitlenir.
+
+---
+
+## Notlar/Öğrenilenler (VFX Engineer)
+
+- 2026-10-22: Entegrasyon rehberi ve partikül bütçeleri `scenes/vfx/README.md`'de. MVP'de tek giriş noktası `vfx_director.tscn` (EventBus dinler), motor izi `engine_trail.tscn` + `set_thrust()`.
+- Top-down kamerada sky görünmüyor; arka plan kameraya bağlı tek quad (120 m altta) + shader içi parallax. Ortografik kamerada da çalışır.
+- GLSL'de `smoothstep(a, b, x)` için a > b tanımsız; llvmpipe'ta NaN/siyah çizgi üretti. Ters kenar yerine `1.0 - smoothstep(b, a, x)` kullan.
+- Box'ta GPU yok (Vulkan llvmpipe). Frame süreleri yazılım render'ı; gerçek orta seviye GPU ölçümü PC'de yapılmalı (`vfx_lookdev.tscn` capture modu `perf.txt` yazar).
