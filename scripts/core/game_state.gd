@@ -247,7 +247,7 @@ func _max_level(part: StringName) -> int:
 	var def := hull.get_part(PARTS.find(part) as ShipPartDefinition.Slot)
 	if def == null:
 		return 1
-	return mini(def.levels.size(), ShipHullDefinition.MAX_PART_LEVEL)
+	return def.get_max_level()
 
 
 func _recalculate_stats() -> void:

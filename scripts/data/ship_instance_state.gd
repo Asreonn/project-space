@@ -9,8 +9,8 @@ extends Resource
 }
 
 
-func can_upgrade(part: StringName) -> bool:
-	return part_levels.get(part, 1) < ShipHullDefinition.MAX_PART_LEVEL
+func can_upgrade(part: StringName, def: ShipPartDefinition) -> bool:
+	return part_levels.get(part, 1) < mini(ShipHullDefinition.MAX_PART_LEVEL, def.authored_up_to_level)
 
 
 static func create_for(hull: ShipHullDefinition, level: int = 1) -> ShipInstanceState:

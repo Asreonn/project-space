@@ -10,17 +10,19 @@ static func mod(stat: StringName, value: float, op: StatModifier.Op = StatModifi
 	return m
 
 
-## Hull with 4 parts x 3 empty levels and no scene paths.
+## Hull with 4 parts x 3 empty levels (all authored) and no scene paths.
 static func make_hull(base: Dictionary[StringName, float], caps: Dictionary[StringName, float], hull_id: StringName = &"test_hull_01") -> ShipHullDefinition:
 	var h := ShipHullDefinition.new()
 	h.id = hull_id
 	h.base_stats = base
 	h.upgrade_caps = caps
+	h.authored_up_to_level = 3
 	for slot: int in ShipPartDefinition.Slot.values():
 		var p := ShipPartDefinition.new()
 		p.slot = slot as ShipPartDefinition.Slot
 		p.hull_id = h.id
 		p.id = ShipPartDefinition.make_id(p.slot, h.id)
+		p.authored_up_to_level = 3
 		for n: int in [1, 2, 3]:
 			var l := ShipPartLevel.new()
 			l.level = n
