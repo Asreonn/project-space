@@ -1,0 +1,27 @@
+# Godot 4
+.godot/
+.import/
+export.cfg
+export_credentials.cfg
+*.translation
+# Exports / builds
+/build/
+/exports/
+*.tmp
+# Mono / C# (not used yet)
+.mono/
+data_*/
+mono_crash.*.json
+# Blender autosave / backups
+*.blend1
+*.blend2
+*.blend@
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+# Secrets — never commit
+.env
+.env.*
