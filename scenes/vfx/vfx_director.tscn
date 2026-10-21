@@ -1,0 +1,13 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/vfx/vfx_director.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/mining_beam.tscn" id="2_beam"]
+[ext_resource type="Script" path="res://scripts/vfx/vfx_pool.gd" id="3_pool"]
+
+[node name="VfxDirector" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="MiningBeam" parent="." instance=ExtResource("2_beam")]
+
+[node name="VfxPool" type="Node3D" parent="."]
+script = ExtResource("3_pool")
