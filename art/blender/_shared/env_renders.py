@@ -97,7 +97,7 @@ def r_sockets():
         items.append((name,(x,-4.8,0)))
         for e in root.children:
             if e.name.split(".")[0].startswith(("OreSocket","VeinSocket")):
-                p=imp(f"{A}/pickups/pickup_ore_common_solid.glb" if e.name.startswith("Ore") else f"{A}/pickups/pickup_crystal_blue_solid.glb",scale=3.0)
+                p=imp(f"{A}/pickups/ore_pickup_01.glb" if e.name.startswith("Ore") else f"{A}/pickups/crystal_pickup_01.glb",scale=3.0)
                 p.matrix_world=e.matrix_world@__import__("mathutils").Matrix.Scale(3.0,4)
     C.set_res(int(RES*0.45),RES); d=f"{RND}/asteroids"; c=Vector((0,0,0))
     shot(C.cam("Top",(0,0,60),c,ortho=44),f"{d}/asteroids_sockets_top{TAG}.png",items)
@@ -106,15 +106,15 @@ def r_sockets():
 def r_pickups():
     reset(); items=[]; d=f"{RND}/pickups"
     ship((0,0,0),rotz=0.0); items.append(("ship L1",(0,-1.15,0)))
-    imp(f"{A}/pickups/pickup_ore_common_solid.glb",(1.6,0.3,0)); items.append(("pickup_ore_common_solid",(1.6,-0.15,0)))
-    imp(f"{A}/pickups/pickup_crystal_blue_solid.glb",(2.6,-0.4,0)); items.append(("pickup_crystal_blue_solid",(2.6,-0.85,0)))
+    imp(f"{A}/pickups/ore_pickup_01.glb",(1.6,0.3,0)); items.append(("ore_pickup_01",(1.6,-0.15,0)))
+    imp(f"{A}/pickups/crystal_pickup_01.glb",(2.6,-0.4,0)); items.append(("crystal_pickup_01",(2.6,-0.85,0)))
     for i,n in enumerate((1,2)):
         imp(f"{A}/asteroids/asteroid_chunk_{n:02d}.glb",(-1.9+i*0.2,-0.2+i*1.0,0),rotz=i)
     C.set_res(int(RES*0.62),RES); c=Vector((0.6,0,0))
     shot(C.cam("Top",c+Vector((0,0,20)),c,ortho=6.2),f"{d}/pickups_top{TAG}.png",items)
     shot(C.cam("Game",c+Vector((0,-2.6,6.4)),c,lens=40),f"{d}/pickups_ingame{TAG}.png",items)
     C.set_res(RES//2)
-    for n in ("pickup_ore_common_solid","pickup_crystal_blue_solid"):
+    for n in ("ore_pickup_01","crystal_pickup_01"):
         for o in list(bpy.data.objects):
             if o.type!="LIGHT" and o.type!="CAMERA": o.hide_render=True
         root=imp(f"{A}/pickups/{n}.glb",(20,0,0))
@@ -142,9 +142,9 @@ def r_mock():
     for i,(n,p) in enumerate([("asteroid_chunk_01",(8.3,-3.6)),("asteroid_chunk_02",(9.4,-5.2)),("asteroid_chunk_03",(7.2,-5.6)),("asteroid_chunk_01",(10.2,-3.4))]):
         imp(f"{A}/asteroids/{n}.glb",(*p,0),rotz=i*1.3)
     for i,p in enumerate([(4.6,-3.2),(5.8,-4.4),(3.6,-4.6),(7.0,-2.6)]):
-        imp(f"{A}/pickups/pickup_ore_common_solid.glb",(*p,0),rotz=i*0.9)
+        imp(f"{A}/pickups/ore_pickup_01.glb",(*p,0),rotz=i*0.9)
     for i,p in enumerate([(2.6,-2.4),(-1.8,10.5)]):
-        imp(f"{A}/pickups/pickup_crystal_blue_solid.glb",(*p,0),rotz=i)
+        imp(f"{A}/pickups/crystal_pickup_01.glb",(*p,0),rotz=i)
     C.set_res(RES,int(RES*16/9))
     tgt=Vector((1.5,1.0,0))
     shot(C.cam("Game",tgt+Vector((0,-11.5,28.5)),tgt,lens=24),f"{d}/mock_ingame{TAG}.png")
