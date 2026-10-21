@@ -73,7 +73,7 @@ Sahibi olmadığın yolda değişiklik gerekiyorsa: küçükse PR'da açıkça b
 - **Dosyalar:** `snake_case` — `starter_shuttle_01.glb`, `ship_controller.gd`, `hud_main.tscn`, `laser_beam.gdshader`.
 - **GDScript:** `class_name PascalCase`, fonksiyon/değişken `snake_case`, sabit `UPPER_SNAKE`, sinyal geçmiş zaman (`cargo_full`, `asteroid_depleted`). Statik tip kullan (`var speed: float`). [GDScript style guide](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html).
 - **Node'lar:** `PascalCase` (`ShipRoot`, `HardpointLeft`).
-- **Veri id'leri:** `snake_case` + numara: `starter_shuttle_01`, `head_starter_01`, `laser_mk1`. Grade ayrı alandır (`native_grade = "E"`), id'ye gömülmez; görsel grade varyantında dosya soneki `_e`, `_d` … kullanılır.
+- **Veri id'leri:** `snake_case` + numara: `starter_shuttle_01`, `head_starter_shuttle_01`, `laser_mk1`. Grade ayrı alandır (`native_grade = "E"`), id'ye gömülmez; görsel grade varyantında dosya soneki `_e`, `_d` … kullanılır.
 - **Blender objeleri (GAME_PLAN §14.2):** `Head_<id>`, `Body_<id>`, `Engine_<id>`, `Wings_<id>`, boş obje `Hardpoint_<konum>` (`Hardpoint_L`, `Hardpoint_R`, `Hardpoint_Nose`), aktif donanım `Weapon_*`, `MiningLaser_*`, `MiningBomb_*`, `MiningDrill_*`, motor izi çıkış noktası `FX_EngineTrail_<n>`.
 - **Branch:** `<rol>/<konu>` (bkz. §3).
 

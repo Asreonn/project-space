@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="ShipHullDefinition" format=3]
+
+; PLACEHOLDER VALUES (balance_prototype, GAME_PLAN §15.3): every number in this
+; file is a temporary prototype value set by engineering so M1 can run.
+; GAME_PLAN lists these as TBD. The Gameplay Designer replaces them.
+; M1 content: only L1 is filled. L2/L3 exist with level numbers only (contract §6 rule 3).
+
+[ext_resource type="Resource" path="res://data/parts/body_starter_shuttle_01.tres" id="1_1ubbx"]
+[ext_resource type="Resource" path="res://data/parts/engine_starter_shuttle_01.tres" id="2_hywk6"]
+[ext_resource type="Resource" path="res://data/parts/head_starter_shuttle_01.tres" id="3_drlqd"]
+[ext_resource type="Script" path="res://scripts/data/ship_hull_definition.gd" id="4_cynt4"]
+[ext_resource type="Resource" path="res://data/parts/wings_starter_shuttle_01.tres" id="5_uaf0h"]
+
+[resource]
+script = ExtResource("4_cynt4")
+id = &"starter_shuttle_01"
+display_name = "Starter Shuttle"
+affinity = Array[StringName]([&"explorer", &"miner"])
+base_stats = Dictionary[StringName, float]({
+&"carry_capacity": 30.0,
+&"damage": 5.0,
+&"electronic_capacity": 2.0,
+&"energy_capacity": 50.0,
+&"flying_speed": 12.0,
+&"fuel_capacity": 100.0,
+&"fuel_rate": 1.0,
+&"heat_capacity": 100.0,
+&"hull": 100.0,
+&"maneuver_speed": 150.0,
+&"mass": 10.0,
+&"mining_power": 5.0,
+&"module_capacity": 4.0,
+&"radar_range": 60.0,
+&"shield": 0.0,
+&"storage_gas": 0.0,
+&"storage_liquid": 0.0,
+&"storage_solid": 20.0
+})
+upgrade_caps = Dictionary[StringName, float]({
+&"carry_capacity": 70.0,
+&"damage": 25.0,
+&"flying_speed": 22.0,
+&"maneuver_speed": 260.0,
+&"mining_power": 25.0,
+&"storage_solid": 50.0
+})
+hardpoints = Array[StringName]([&"L", &"R"])
+head = ExtResource("3_drlqd")
+body = ExtResource("1_1ubbx")
+wings = ExtResource("5_uaf0h")
+engine = ExtResource("2_hywk6")
