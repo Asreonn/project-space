@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/vfx/ore_pickup_visual.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/ore_glow.tscn" id="2_glow"]
+
+[node name="OrePickupVisual" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="OreGlow" parent="." instance=ExtResource("2_glow")]

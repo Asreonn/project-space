@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="ShipHullDefinition" format=3]
+
+[ext_resource type="Resource" path="res://data/parts/body_starter_shuttle_01.tres" id="1_1ubbx"]
+[ext_resource type="Resource" path="res://data/parts/engine_starter_shuttle_01.tres" id="2_hywk6"]
+[ext_resource type="Resource" path="res://data/parts/head_starter_shuttle_01.tres" id="3_drlqd"]
+[ext_resource type="Script" path="res://scripts/data/ship_hull_definition.gd" id="4_cynt4"]
+[ext_resource type="Resource" path="res://data/parts/wings_starter_shuttle_01.tres" id="5_uaf0h"]
+
+[resource]
+script = ExtResource("4_cynt4")
+authored_up_to_level = 3
+id = &"starter_shuttle_01"
+display_name = "Starter Shuttle"
+affinity = Array[StringName]([&"explorer", &"miner"])
+base_stats = Dictionary[StringName, float]({
+&"carry_capacity": 10.0,
+&"damage": 4.0,
+&"electronic_capacity": 2.0,
+&"energy_capacity": 50.0,
+&"flying_speed": 8.0,
+&"fuel_capacity": 100.0,
+&"fuel_rate": 0.2,
+&"heat_capacity": 100.0,
+&"hull": 60.0,
+&"maneuver_speed": 180.0,
+&"mass": 0.5,
+&"mining_power": 4.0,
+&"module_capacity": 4.0,
+&"radar_range": 80.0,
+&"shield": 0.0,
+&"storage_gas": 0.0,
+&"storage_liquid": 0.0,
+&"storage_solid": 10.0
+})
+upgrade_caps = Dictionary[StringName, float]({
+&"carry_capacity": 50.0,
+&"damage": 14.0,
+&"flying_speed": 14.4,
+&"hull": 160.0,
+&"maneuver_speed": 330.0,
+&"mining_power": 16.0,
+&"storage_solid": 50.0
+})
+hardpoints = Array[StringName]([&"L", &"R"])
+head = ExtResource("3_drlqd")
+body = ExtResource("1_1ubbx")
+wings = ExtResource("5_uaf0h")
+engine = ExtResource("2_hywk6")

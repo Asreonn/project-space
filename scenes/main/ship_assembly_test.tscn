@@ -1,0 +1,44 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/debug/ship_assembly_test.gd" id="1_test"]
+[ext_resource type="Resource" path="res://data/ships/starter_shuttle_01.tres" id="2_hull"]
+[ext_resource type="Script" path="res://scripts/core/ship_assembler.gd" id="3_asm"]
+
+[sub_resource type="Environment" id="Env_space"]
+background_mode = 1
+background_color = Color(0.04, 0.035, 0.09, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.55, 0.5, 0.75, 1)
+ambient_light_energy = 0.6
+tonemap_mode = 4
+
+[sub_resource type="BoxShape3D" id="Shape_hull"]
+size = Vector3(2.4, 0.8, 3.4)
+
+[node name="ShipAssemblyTest" type="Node3D"]
+script = ExtResource("1_test")
+hull = ExtResource("2_hull")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_space")
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 20, 0)
+light_color = Color(1, 0.93, 0.85, 1)
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.1736, 0.9848, 0, -0.9848, 0.1736, 0, 10, 1.76)
+fov = 35.0
+current = true
+
+[node name="Ship" type="CharacterBody3D" parent="."]
+axis_lock_linear_y = true
+axis_lock_angular_x = true
+axis_lock_angular_z = true
+motion_mode = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ship"]
+shape = SubResource("Shape_hull")
+
+[node name="Assembler" type="Node3D" parent="Ship"]
+script = ExtResource("3_asm")

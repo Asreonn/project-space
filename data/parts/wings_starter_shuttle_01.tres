@@ -1,0 +1,74 @@
+[gd_resource type="Resource" script_class="ShipPartDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/ship_part_level.gd" id="1_ejiu3"]
+[ext_resource type="Script" path="res://scripts/data/cost_entry.gd" id="2_en1fk"]
+[ext_resource type="Script" path="res://scripts/data/stat_modifier.gd" id="3_nwrqo"]
+[ext_resource type="Script" path="res://scripts/data/ship_part_definition.gd" id="4_fguyn"]
+
+[sub_resource type="Resource" id="Resource_gk5ka"]
+script = ExtResource("3_nwrqo")
+stat = &"maneuver_speed"
+value = 90.0
+
+[sub_resource type="Resource" id="Resource_ymvsn"]
+script = ExtResource("3_nwrqo")
+stat = &"mass"
+value = 0.5
+
+[sub_resource type="Resource" id="Resource_unrv3"]
+script = ExtResource("1_ejiu3")
+scene_path = "res://assets/models/ships/starter_shuttle_01/wings_L1.glb"
+modifiers = Array[ExtResource("3_nwrqo")]([SubResource("Resource_gk5ka"), SubResource("Resource_ymvsn")])
+
+[sub_resource type="Resource" id="Resource_5xkf4"]
+script = ExtResource("2_en1fk")
+item_id = &"credits"
+amount = 360
+
+[sub_resource type="Resource" id="Resource_tpy3h"]
+script = ExtResource("3_nwrqo")
+stat = &"maneuver_speed"
+value = 120.0
+
+[sub_resource type="Resource" id="Resource_i6dby"]
+script = ExtResource("3_nwrqo")
+stat = &"mass"
+value = 0.5
+
+[sub_resource type="Resource" id="Resource_16ijb"]
+script = ExtResource("1_ejiu3")
+level = 2
+scene_path = "res://assets/models/ships/starter_shuttle_01/wings_L2.glb"
+modifiers = Array[ExtResource("3_nwrqo")]([SubResource("Resource_tpy3h"), SubResource("Resource_i6dby")])
+cost = Array[ExtResource("2_en1fk")]([SubResource("Resource_5xkf4")])
+
+[sub_resource type="Resource" id="Resource_m8xbt"]
+script = ExtResource("2_en1fk")
+item_id = &"credits"
+amount = 380
+
+[sub_resource type="Resource" id="Resource_3tp5g"]
+script = ExtResource("3_nwrqo")
+stat = &"maneuver_speed"
+value = 150.0
+
+[sub_resource type="Resource" id="Resource_qc3g5"]
+script = ExtResource("3_nwrqo")
+stat = &"mass"
+value = 0.5
+
+[sub_resource type="Resource" id="Resource_s74eo"]
+script = ExtResource("1_ejiu3")
+level = 3
+scene_path = "res://assets/models/ships/starter_shuttle_01/wings_L3.glb"
+modifiers = Array[ExtResource("3_nwrqo")]([SubResource("Resource_3tp5g"), SubResource("Resource_qc3g5")])
+cost = Array[ExtResource("2_en1fk")]([SubResource("Resource_m8xbt")])
+
+[resource]
+script = ExtResource("4_fguyn")
+authored_up_to_level = 3
+id = &"wings_starter_shuttle_01"
+hull_id = &"starter_shuttle_01"
+slot = 2
+display_name = "Starter Wings"
+levels = Array[ExtResource("1_ejiu3")]([SubResource("Resource_unrv3"), SubResource("Resource_16ijb"), SubResource("Resource_s74eo")])

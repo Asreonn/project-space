@@ -1,0 +1,215 @@
+[gd_scene load_steps=30 format=3]
+
+[ext_resource type="Script" path="res://scripts/vfx/vfx_one_shot.gd" id="1_script"]
+[ext_resource type="Shader" path="res://assets/shaders/vfx_soft_particle.gdshader" id="2_soft"]
+[ext_resource type="Shader" path="res://assets/shaders/vfx_dust.gdshader" id="3_dust"]
+[ext_resource type="Shader" path="res://assets/shaders/vfx_spark.gdshader" id="4_spark"]
+
+[sub_resource type="Curve" id="Curve_chunk"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.7, 0.9), 0.0, 0.0, 0, 0, Vector2(1, 0), -3.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTex_chunk"]
+curve = SubResource("Curve_chunk")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_chunk"]
+particle_flag_rotate_y = true
+emission_shape = 1
+emission_sphere_radius = 1.2
+direction = Vector3(0, 0, 1)
+spread = 180.0
+flatness = 0.85
+initial_velocity_min = 1.5
+initial_velocity_max = 4.0
+angular_velocity_min = -220.0
+angular_velocity_max = 220.0
+angle_min = -180.0
+angle_max = 180.0
+gravity = Vector3(0, 0, 0)
+damping_min = 1.2
+damping_max = 2.2
+scale_min = 0.5
+scale_max = 1.3
+scale_curve = SubResource("CurveTex_chunk")
+
+[sub_resource type="StandardMaterial3D" id="Mat_rock"]
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.48, 0.38, 0.42, 1)
+roughness = 0.9
+rim_enabled = true
+rim = 0.35
+rim_tint = 0.6
+
+[sub_resource type="SphereMesh" id="Mesh_chunk"]
+material = SubResource("Mat_rock")
+radius = 0.3
+height = 0.42
+radial_segments = 5
+rings = 2
+
+[sub_resource type="Gradient" id="Grad_ore"]
+offsets = PackedFloat32Array(0, 0.6, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.8, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradTex_ore"]
+gradient = SubResource("Grad_ore")
+width = 32
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_ore"]
+emission_shape = 1
+emission_sphere_radius = 1.0
+direction = Vector3(0, 0, 1)
+spread = 180.0
+flatness = 0.8
+initial_velocity_min = 1.5
+initial_velocity_max = 4.0
+gravity = Vector3(0, 0, 0)
+damping_min = 3.0
+damping_max = 5.0
+scale_min = 0.6
+scale_max = 1.2
+color_ramp = SubResource("GradTex_ore")
+
+[sub_resource type="ShaderMaterial" id="Mat_ore"]
+resource_local_to_scene = true
+render_priority = 2
+shader = ExtResource("4_spark")
+shader_parameter/tint = Color(1, 0.62, 0.25, 1)
+shader_parameter/energy = 2.6
+
+[sub_resource type="QuadMesh" id="Mesh_ore"]
+resource_local_to_scene = true
+material = SubResource("Mat_ore")
+size = Vector2(0.09, 0.45)
+
+[sub_resource type="Gradient" id="Grad_dust"]
+offsets = PackedFloat32Array(0, 0.25, 1)
+colors = PackedColorArray(0.55, 0.42, 0.46, 0, 0.5, 0.38, 0.45, 0.32, 0.36, 0.27, 0.4, 0)
+
+[sub_resource type="GradientTexture1D" id="GradTex_dust"]
+gradient = SubResource("Grad_dust")
+width = 32
+
+[sub_resource type="Curve" id="Curve_dust"]
+_data = [Vector2(0, 0.35), 0.0, 1.6, 0, 0, Vector2(1, 1), 0.3, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTex_dust"]
+curve = SubResource("Curve_dust")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_dust"]
+emission_shape = 1
+emission_sphere_radius = 1.3
+direction = Vector3(0, 0, 1)
+spread = 180.0
+flatness = 0.9
+initial_velocity_min = 0.3
+initial_velocity_max = 0.9
+gravity = Vector3(0, 0, 0)
+damping_min = 0.3
+damping_max = 0.6
+scale_min = 0.8
+scale_max = 1.4
+scale_curve = SubResource("CurveTex_dust")
+color_ramp = SubResource("GradTex_dust")
+
+[sub_resource type="ShaderMaterial" id="Mat_dust"]
+render_priority = 1
+shader = ExtResource("3_dust")
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/softness = 0.9
+shader_parameter/noise_amount = 0.35
+
+[sub_resource type="QuadMesh" id="Mesh_dust"]
+material = SubResource("Mat_dust")
+size = Vector2(1.9, 1.9)
+
+[sub_resource type="Gradient" id="Grad_flash"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 0.75, 0.5, 0.8, 1, 0.5, 0.35, 0)
+
+[sub_resource type="GradientTexture1D" id="GradTex_flash"]
+gradient = SubResource("Grad_flash")
+width = 32
+
+[sub_resource type="Curve" id="Curve_flash"]
+_data = [Vector2(0, 0.5), 0.0, 4.0, 0, 0, Vector2(0.3, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.8), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTex_flash"]
+curve = SubResource("Curve_flash")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_flash"]
+gravity = Vector3(0, 0, 0)
+scale_curve = SubResource("CurveTex_flash")
+color_ramp = SubResource("GradTex_flash")
+
+[sub_resource type="ShaderMaterial" id="Mat_flash"]
+render_priority = 3
+shader = ExtResource("2_soft")
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/energy = 1.2
+shader_parameter/softness = 0.95
+shader_parameter/core = 0.15
+shader_parameter/billboard = true
+shader_parameter/pulse = false
+shader_parameter/pulse_speed = 3.0
+
+[sub_resource type="QuadMesh" id="Mesh_flash"]
+material = SubResource("Mat_flash")
+size = Vector2(3.2, 3.2)
+
+[node name="AsteroidBreak" type="Node3D"]
+script = ExtResource("1_script")
+duration = 1.6
+reference_size = 2.5
+min_scale = 0.45
+max_scale = 2.0
+tint_targets = Array[NodePath]([NodePath("OreBits")])
+
+[node name="Flash" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+emitting = false
+amount = 1
+lifetime = 0.25
+one_shot = true
+visibility_aabb = AABB(-10, -4, -10, 20, 8, 20)
+process_material = SubResource("PPM_flash")
+draw_pass_1 = SubResource("Mesh_flash")
+
+[node name="Chunks" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 16
+lifetime = 1.4
+one_shot = true
+explosiveness = 0.95
+randomness = 0.3
+visibility_aabb = AABB(-10, -4, -10, 20, 8, 20)
+process_material = SubResource("PPM_chunk")
+draw_pass_1 = SubResource("Mesh_chunk")
+
+[node name="OreBits" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+emitting = false
+amount = 10
+lifetime = 0.6
+one_shot = true
+explosiveness = 1.0
+randomness = 0.3
+transform_align = 3
+visibility_aabb = AABB(-10, -4, -10, 20, 8, 20)
+process_material = SubResource("PPM_ore")
+draw_pass_1 = SubResource("Mesh_ore")
+
+[node name="Dust" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+emitting = false
+amount = 10
+lifetime = 1.5
+one_shot = true
+explosiveness = 0.9
+randomness = 0.3
+visibility_aabb = AABB(-10, -4, -10, 20, 8, 20)
+process_material = SubResource("PPM_dust")
+draw_pass_1 = SubResource("Mesh_dust")

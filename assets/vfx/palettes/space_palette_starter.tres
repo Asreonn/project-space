@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SpacePalette" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/vfx/space_palette.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+color_void = Color(0.035, 0.025, 0.08, 1)
+color_deep = Color(0.24, 0.1, 0.4, 1)
+color_mid = Color(0.7, 0.26, 0.58, 1)
+color_warm = Color(1.0, 0.55, 0.38, 1)
+color_hot = Color(1.0, 0.72, 0.42, 1)
+star_tint = Color(1, 0.93, 0.86, 1)
+nebula_density = 1.0
+nebula_brightness = 0.68
+nebula_saturation = 0.78
+star_density = 0.22
+planet_color_a = Color(1.0, 0.62, 0.4, 1)
+planet_color_b = Color(0.85, 0.42, 0.38, 1)
+planet_shadow = Color(0.16, 0.08, 0.22, 1)
+planet_atmosphere = Color(1, 0.72, 0.55, 1)
+planet_ring = true

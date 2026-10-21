@@ -1,0 +1,58 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/core/mvp_game.gd" id="1_game"]
+[ext_resource type="Resource" path="res://data/ships/starter_shuttle_01.tres" id="2_hull"]
+[ext_resource type="Resource" path="res://data/sectors/mvp_sector_01.tres" id="3_sector"]
+[ext_resource type="Environment" path="res://scenes/vfx/environment_space.tres" id="4_env"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/space_background.tscn" id="5_bg"]
+[ext_resource type="PackedScene" path="res://scenes/ship/player_ship.tscn" id="6_ship"]
+[ext_resource type="PackedScene" path="res://scenes/world/game_camera.tscn" id="7_cam"]
+[ext_resource type="PackedScene" path="res://scenes/world/station.tscn" id="8_station"]
+[ext_resource type="Script" path="res://scripts/core/asteroid_field.gd" id="9_field"]
+[ext_resource type="Script" path="res://scripts/core/pickup_pool.gd" id="10_pool"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/vfx_director.tscn" id="11_vfx"]
+[ext_resource type="Script" path="res://scripts/core/mvp_fx_bridge.gd" id="12_bridge"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/post_fx.tscn" id="13_post"]
+[ext_resource type="Script" path="res://scripts/debug/mvp_debug_hud.gd" id="14_hud"]
+[ext_resource type="Resource" path="res://data/loot/pickup_tuning.tres" id="15_pt"]
+
+[node name="MvpSector" type="Node3D"]
+script = ExtResource("1_game")
+hull = ExtResource("2_hull")
+sector = ExtResource("3_sector")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("4_env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 20, 0)
+light_color = Color(1, 0.93, 0.85, 1)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="SpaceBackground" parent="." instance=ExtResource("5_bg")]
+
+[node name="PlayerShip" parent="." instance=ExtResource("6_ship")]
+
+[node name="GameCamera" parent="." instance=ExtResource("7_cam")]
+
+[node name="Station" parent="." instance=ExtResource("8_station")]
+
+[node name="AsteroidField" type="Node3D" parent="."]
+script = ExtResource("9_field")
+sector = ExtResource("3_sector")
+
+[node name="PickupPool" type="Node3D" parent="."]
+script = ExtResource("10_pool")
+tuning = ExtResource("15_pt")
+
+[node name="VfxDirector" parent="." instance=ExtResource("11_vfx")]
+
+[node name="FxBridge" type="Node3D" parent="."]
+script = ExtResource("12_bridge")
+director_path = NodePath("../VfxDirector")
+
+[node name="PostFx" parent="." instance=ExtResource("13_post")]
+
+[node name="DebugHud" type="CanvasLayer" parent="."]
+script = ExtResource("14_hud")

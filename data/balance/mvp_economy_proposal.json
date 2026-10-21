@@ -1,0 +1,16 @@
+{
+ "_comment": "balance_prototype. Proposed MVP asteroid / ore / sector / pickup numbers in the field names of the Godot Engineer's WIP schema (ResourceDefinition, AsteroidDefinition, SectorDefinition, PickupTuning). Engineer turns these into .tres when the classes land; read by tests/tools/mvp_balance_sim.gd. Doc: docs/briefs/mvp_balance.md",
+ "resources": [
+  {"id": "ore_common_solid",   "display_name": "Ore",          "phase": "SOLID", "volume_per_unit": 1.0, "mass_per_unit": 0.03, "sell_price": 4},
+  {"id": "crystal_blue_solid", "display_name": "Blue Crystal", "phase": "SOLID", "volume_per_unit": 1.0, "mass_per_unit": 0.02, "sell_price": 12}
+ ],
+ "asteroids": [
+  {"id": "asteroid_rock_s", "size": "S", "radius": 1.0, "max_hp": 30,  "ore": "ore_common_solid",   "ore_units": 3,  "units_per_pickup_min": 1, "units_per_pickup_max": 1, "count": 8},
+  {"id": "asteroid_rock_m", "size": "M", "radius": 2.5, "max_hp": 80,  "ore": "ore_common_solid",   "ore_units": 6,  "units_per_pickup_min": 1, "units_per_pickup_max": 2, "count": 6},
+  {"id": "asteroid_ore_m",  "size": "M", "radius": 2.5, "max_hp": 90,  "ore": "crystal_blue_solid", "ore_units": 4,  "units_per_pickup_min": 1, "units_per_pickup_max": 2, "count": 2},
+  {"id": "asteroid_rock_l", "size": "L", "radius": 4.0, "max_hp": 160, "ore": "ore_common_solid",   "ore_units": 12, "units_per_pickup_min": 2, "units_per_pickup_max": 3, "count": 3},
+  {"id": "asteroid_ore_l",  "size": "L", "radius": 4.0, "max_hp": 180, "ore": "crystal_blue_solid", "ore_units": 7,  "units_per_pickup_min": 1, "units_per_pickup_max": 2, "count": 1}
+ ],
+ "sector": {"play_radius": 120, "soft_border": 130, "ring_min_radius": 25, "ring_max_radius": 100, "min_gap": 3.0, "cluster_size": [3, 5], "respawn_delay": 60, "respawn_min_player_distance": 40, "dock_radius": 5.0, "starting_credits": 0},
+ "pickup": {"magnet_radius": 5.0, "pull_accel": 40.0, "pull_max_speed": 18.0, "collect_radius": 1.0, "lifetime": 0, "max_active": 150, "scatter_speed_min": 1.5, "scatter_speed_max": 3.5, "attract_only_if_room": true}
+}

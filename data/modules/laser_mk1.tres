@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MiningLaserDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/mining_laser_definition.gd" id="1_laser"]
+
+[resource]
+script = ExtResource("1_laser")
+id = &"laser_mk1"
+display_name = "Mining Laser"
+beam_range = 10.0
+beam_radius = 0.18
+firing_arc_deg = 35.0
+spin_up = 0.12
+node_damage_per_s = 14.0
+uses_stat = &"mining_power"
+balance_prototype = true

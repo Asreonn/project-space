@@ -1,0 +1,106 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/vfx/vfx_one_shot.gd" id="1_script"]
+[ext_resource type="Shader" path="res://assets/shaders/vfx_soft_particle.gdshader" id="2_soft"]
+[ext_resource type="Shader" path="res://assets/shaders/vfx_ring.gdshader" id="3_ring"]
+
+[sub_resource type="Gradient" id="Grad_ring"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradTex_ring"]
+gradient = SubResource("Grad_ring")
+width = 32
+
+[sub_resource type="Curve" id="Curve_ring"]
+_data = [Vector2(0, 0.15), 0.0, 2.5, 0, 0, Vector2(1, 1), 0.2, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTex_ring"]
+curve = SubResource("Curve_ring")
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_ring"]
+gravity = Vector3(0, 0, 0)
+scale_curve = SubResource("CurveTex_ring")
+color_ramp = SubResource("GradTex_ring")
+
+[sub_resource type="ShaderMaterial" id="Mat_ring"]
+resource_local_to_scene = true
+render_priority = 2
+shader = ExtResource("3_ring")
+shader_parameter/tint = Color(1, 0.62, 0.25, 1)
+shader_parameter/energy = 3.0
+shader_parameter/thickness = 0.16
+
+[sub_resource type="QuadMesh" id="Mesh_ring"]
+resource_local_to_scene = true
+material = SubResource("Mat_ring")
+size = Vector2(1.6, 1.6)
+
+[sub_resource type="Gradient" id="Grad_pop"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.8, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradTex_pop"]
+gradient = SubResource("Grad_pop")
+width = 32
+
+[sub_resource type="ParticleProcessMaterial" id="PPM_pop"]
+emission_shape = 1
+emission_sphere_radius = 0.1
+direction = Vector3(0, 1, 0)
+spread = 180.0
+flatness = 0.7
+initial_velocity_min = 1.0
+initial_velocity_max = 2.2
+gravity = Vector3(0, 0, 0)
+damping_min = 3.0
+damping_max = 5.0
+scale_min = 0.6
+scale_max = 1.1
+color_ramp = SubResource("GradTex_pop")
+
+[sub_resource type="ShaderMaterial" id="Mat_pop"]
+resource_local_to_scene = true
+render_priority = 2
+shader = ExtResource("2_soft")
+shader_parameter/tint = Color(1, 0.62, 0.25, 1)
+shader_parameter/energy = 3.0
+shader_parameter/softness = 0.7
+shader_parameter/core = 0.6
+shader_parameter/billboard = true
+shader_parameter/pulse = false
+shader_parameter/pulse_speed = 3.0
+
+[sub_resource type="QuadMesh" id="Mesh_pop"]
+resource_local_to_scene = true
+material = SubResource("Mat_pop")
+size = Vector2(0.18, 0.18)
+
+[node name="OreCollectPop" type="Node3D"]
+script = ExtResource("1_script")
+duration = 0.7
+reference_size = 1.0
+tint_targets = Array[NodePath]([NodePath("Ring"), NodePath("Bits")])
+
+[node name="Ring" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+emitting = false
+amount = 1
+lifetime = 0.35
+one_shot = true
+visibility_aabb = AABB(-2, -2, -2, 4, 4, 4)
+process_material = SubResource("PPM_ring")
+draw_pass_1 = SubResource("Mesh_ring")
+
+[node name="Bits" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+emitting = false
+amount = 12
+lifetime = 0.55
+one_shot = true
+explosiveness = 1.0
+randomness = 0.3
+visibility_aabb = AABB(-2, -2, -2, 4, 4, 4)
+process_material = SubResource("PPM_pop")
+draw_pass_1 = SubResource("Mesh_pop")
