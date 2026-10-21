@@ -4,11 +4,10 @@ extends Node3D
 ## autoload and drives every gameplay VFX itself; nobody else has to call it.
 ##   mining_beam_started/updated(origin, target)  -> MiningBeam on/follow
 ##   mining_beam_stopped()                         -> MiningBeam fade out
-##   asteroid_damaged(asteroid, hp, max_hp, hit)   -> sparks/hot spot on (beam is hitting)
-##   asteroid_destroyed(position, size)            -> pooled AsteroidBreak (size: radius m,
-##                                                    or &"S"/&"M"/&"L")
-##   ore_spawned(pickup, item_id, amount)          -> OreGlow child on the pickup node
-##   ore_collected(item_id, amount[, position])    -> pooled collect pop at the pickup
+##   asteroid_damaged(asteroid, hit_position, hp_ratio) -> sparks/hot spot on (beam is hitting)
+##   asteroid_destroyed(position, radius)          -> pooled AsteroidBreak (radius m)
+##   ore_spawned(position, item_id, amount)        -> OreGlow child on the pickup at position
+##   ore_collected(item_id, amount, position)      -> pooled collect pop at the pickup
 ## Signals are connected only if EventBus defines them, so this works while
 ## the bus is still growing. Every effect is bounded (see README budgets).
 
@@ -110,8 +109,12 @@ func _try(bus: Node, sig: StringName, cb: Callable) -> void:
 
 
 func _on_beam_started(origin: Variant, target: Variant) -> void:
-	beam.start(origin, _point(target))
-	beam.set_target(_point(target), false)
+	# mvp.md §6: origin = FX_MiningOrigin node, target = asteroid node or null
+	# (beam on, no hit yet). With no target, start at the origin; the next
+	# mining_beam_updated / asteroid_damaged moves the end. [integration]
+	var end := _point(target) if target != null else _point(origin)
+	beam.start(origin, end)
+	beam.set_target(end, false)
 
 
 func _on_beam_updated(origin: Variant, target: Variant) -> void:
@@ -123,7 +126,14 @@ func _on_beam_stopped() -> void:
 	beam.stop()
 
 
-func _on_asteroid_damaged(_asteroid: Node3D, _hp: float = 0.0, _max_hp: float = 0.0, hit_point: Variant = null) -> void:
+## Bus signature: asteroid_damaged(asteroid, hit_position: Vector3, hp_ratio: float).
+## Args are Variant so the older (asteroid, hp, max_hp, hit) order still works. [integration]
+func _on_asteroid_damaged(_asteroid: Node3D, a: Variant = null, b: Variant = null, c: Variant = null) -> void:
+	var hit_point: Variant = null
+	for v: Variant in [a, b, c]:
+		if v is Vector3:
+			hit_point = v
+			break
 	_since_hit = 0.0
 	if hit_point is Vector3 and beam.active:
 		var hp: Vector3 = hit_point
@@ -136,8 +146,31 @@ func _on_asteroid_destroyed(at: Vector3, size: Variant = &"M") -> void:
 	play_asteroid_break(at, size)
 
 
-func _on_ore_spawned(pickup: Node3D, item_id: StringName = &"", _amount: int = 0) -> void:
-	add_ore_glow(pickup, item_id)
+## Bus signature: ore_spawned(position: Vector3, item_id, amount). The glow
+## attaches to the pickup node at that position (group "ore_pickups"). [integration]
+func _on_ore_spawned(pickup_or_position: Variant, item_id: StringName = &"", _amount: int = 0) -> void:
+	var pickup: Node3D = null
+	if pickup_or_position is Node3D:
+		pickup = pickup_or_position
+	elif pickup_or_position is Vector3:
+		var at: Vector3 = pickup_or_position
+		pickup = _pickup_at(at)
+	if pickup != null:
+		add_ore_glow(pickup, item_id)
+
+
+func _pickup_at(at: Vector3) -> Node3D:
+	var best: Node3D = null
+	var best_d := 0.25 # m^2
+	for n: Node in get_tree().get_nodes_in_group(&"ore_pickups"):
+		var p := n as Node3D
+		if p == null or p.get_node_or_null(^"OreGlow") != null:
+			continue
+		var d := p.global_position.distance_squared_to(at)
+		if d < best_d:
+			best_d = d
+			best = p
+	return best
 
 
 func _on_ore_collected(item_id: StringName, _amount: int = 0, at: Variant = null) -> void:
