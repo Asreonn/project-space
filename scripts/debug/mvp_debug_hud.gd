@@ -45,19 +45,28 @@ func _ready() -> void:
 	_fps.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_fps.position = Vector2(-150, 16)
 	_prompt = _label(root, Vector2.ZERO, 26)
-	_prompt.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_prompt.position = Vector2(-90, -140)
+	_prompt.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_prompt.offset_top = -150.0
+	_prompt.offset_bottom = -110.0
+	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_prompt.text = "E: Station"
 	_prompt.visible = false
-	_toast = _label(root, Vector2.ZERO, 24)
-	_toast.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_toast.position = Vector2(-160, 40)
+	# Toast: full-width strip, text centred, below the top edge (never clipped).
+	_toast = _label(root, Vector2.ZERO, 26)
+	_toast.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	_toast.offset_top = 36.0
+	_toast.offset_bottom = 76.0
+	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_toast.modulate = Color(1.0, 0.75, 0.5)
 
+	# Panel: right-anchored, grows leftward, so long rows never leave the screen.
 	_panel = PanelContainer.new()
-	_panel.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-	_panel.position = Vector2(-560, -200)
-	_panel.custom_minimum_size = Vector2(520, 0)
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
+	_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_panel.offset_right = -32.0
+	_panel.offset_left = -32.0
+	_panel.custom_minimum_size = Vector2(560, 0)
 	_panel.visible = false
 	root.add_child(_panel)
 	var box := VBoxContainer.new()
