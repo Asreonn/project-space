@@ -77,15 +77,25 @@ func _run() -> void:
 		for i in 6:
 			await get_tree().physics_frame
 		_check(GameState.docked, "trip %d: docked at the station" % trips)
-		var earned := GameState.sell_all_cargo()
-		_check(earned > 0 and GameState.get_cargo_used() == 0, "trip %d: sold for %d, credits %d" % [trips, earned, GameState.credits])
+		# E opens the station panel (locks ship input), Sell button, E closes.
+		await _press_interact()
+		_check(_game.hud.panel_open and ship.input_locked, "trip %d: E opened the station panel" % trips)
+		var before_credits := GameState.credits
+		_game.hud._sell_button.pressed.emit()
+		var earned := GameState.credits - before_credits
+		_check(earned > 0 and GameState.get_cargo_used() == 0, "trip %d: Sell button sold for %d, credits %d" % [trips, earned, GameState.credits])
+		await _press_interact()
+		_check(not _game.hud.panel_open and not ship.input_locked, "trip %d: E closed the panel" % trips)
 		if _failed:
 			finished.emit(1)
 			return
 
 	# Upgrade the cheapest part L1 -> L2 and check the model swap.
 	var before := _part_model(cheapest)
-	var ok := GameState.try_upgrade(cheapest)
+	await _press_interact()
+	_game.hud._rows[cheapest].pressed.emit()
+	var ok := GameState.get_part_level(cheapest) == 2
+	await _press_interact()
 	await get_tree().process_frame
 	_check(ok and GameState.get_part_level(cheapest) == 2, "%s upgraded to L2 (credits left %d)" % [cheapest, GameState.credits])
 	var after := _part_model(cheapest)
@@ -139,6 +149,16 @@ func _collect() -> bool:
 		await get_tree().physics_frame
 	_fail("pickups were not collected (%d left)" % _game.pickups.get_pickups().size())
 	return false
+
+
+func _press_interact() -> void:
+	for pressed: bool in [true, false]:
+		var ev := InputEventAction.new()
+		ev.action = &"interact"
+		ev.pressed = pressed
+		Input.parse_input_event(ev)
+		await get_tree().process_frame
+	await get_tree().process_frame
 
 
 func _cheapest_part() -> StringName:

@@ -91,8 +91,9 @@ func collect(p: OrePickup) -> int:
 	p.amount -= accepted
 	EventBus.ore_collected.emit(p.item_id, accepted, p.global_position)
 	if p.amount <= 0:
+		# Gone right away: no orphan between frames, get_pickups() skips it.
 		remove_child(p)
-		p.queue_free()
+		p.free()
 	return accepted
 
 

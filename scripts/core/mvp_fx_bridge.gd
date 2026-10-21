@@ -3,9 +3,9 @@ extends Node3D
 ## VFX glue for the MVP sector (mvp.md §5, scenes/vfx/README.md).
 ## mvp_sector.tscn instances VfxDirector, SpaceBackground and PostFx directly
 ## and sets WorldEnvironment to environment_space.tres; this node only:
-## - puts ONE scenes/vfx/engine_trail.tscn under the ship's Visual (it finds the
-##   FX_EngineTrail_<n> empties and re-attaches on rebuilds itself) and calls
-##   set_thrust(amount, boosting) every frame;
+## - if the ship has no EngineTrail of its own (player_ship.tscn has one, driven
+##   by ShipController), puts one scenes/vfx/engine_trail.tscn under Visual and
+##   calls set_thrust(amount, boosting) every frame;
 ## - falls back to primitive placeholders (beam, break flash, trail cones) when
 ##   the VFX scenes are missing, so the loop stays readable without them.
 
@@ -33,6 +33,10 @@ func setup(p_ship: ShipController, p_assembler: ShipAssembler, world_env: WorldE
 	assembler = p_assembler
 	if world_env != null and world_env.environment == null and ResourceLoader.exists(ENVIRONMENT):
 		world_env.environment = load(ENVIRONMENT) as Environment
+	# player_ship.tscn carries Visual/EngineTrail and ShipController drives
+	# set_thrust; only add one (and drive it here) when the ship has none.
+	if ship.find_child("EngineTrail", true, false) != null:
+		return
 	if ResourceLoader.exists(ENGINE_TRAIL):
 		var packed := load(ENGINE_TRAIL) as PackedScene
 		engine_trail = packed.instantiate() as Node3D if packed != null else null
