@@ -10,6 +10,7 @@ Oyunun **hissi** senin: uçuş, madencilik, toplama, çatışma. "Daha fazla öz
 ## [KESİN] kararlar
 
 - 2.5D top-down refleks/konum çatışması; okunabilir, kurşun cehennemi değil (§9.1).
+- Her geminin **sabit** Head/Body/Wings/Engine seti var; başka gemiden parça takılmaz, parça swap yok. Her parçanın L1–L3 seviyesi var, L3 = grade içi tavan (D-006). Starter gemi boyu 1,84 m (D-009).
 - Flying Speed (Engine) ve Maneuver Speed (Wings) **ayrı** statlar; Head → Damage/Mining power, Body → Carry Capacity (§4.2, PDF).
 - Fuel Capacity/Fuel Rate tek bir parçaya zorunlu bağlanmaz (PDF "None") (§4.2).
 - Energy (aktif) ve Electronics/Passive Capacity ayrı değişkenler (§4.2, §4.4).
@@ -22,6 +23,8 @@ Oyunun **hissi** senin: uçuş, madencilik, toplama, çatışma. "Daha fazla öz
 
 ## M1 görevlerin
 
+> **Şimdiki hedef MVP:** görevlerin [mvp.md](mvp.md) §5'te (uçuş, kamera, kazma ışını, döngü sayıları). Aşağıdaki liste M1 içindir.
+
 1. **Graybox uçuş** (`scripts/ship/ship_controller.gd`, `scenes/ship/player_ship.tscn`): `RigidBody3D` veya `CharacterBody3D` (Engineer ile karar), XZ düzlemine kilitli. Hızlanma/yavaşlama, dönüş, fren, boost (fuel tüketir), hafif drift/inertia. Kargo kütlesi manevrayı ölçülü etkiler.
 2. **Kontrol şeması A/B:** (A) WASD hareket + fareye dönük burun, (B) W/S itki + A/D dönüş. İkisi de `data/` ayarıyla seçilebilir; playtest Game Designer ile (§3.2 [AÇIK]).
 3. **Kamera** (`scenes/world/game_camera.tscn`): yumuşak takip, hıza bağlı hafif look-ahead, zoom (wheel). Perspektif FOV ~30–40 ve ortografik modları — seçim playtest ile.
@@ -29,8 +32,8 @@ Oyunun **hissi** senin: uçuş, madencilik, toplama, çatışma. "Daha fazla öz
 5. **Laser madencilik** (`scripts/mining/mining_laser.gd`): ray/shape cast, menzil, ısı birikimi/soğuma, aşırı ısınma kilidi, node HP → kaynak üretimi → `CargoStorage.solid` → `cargo_full` sinyali.
 6. **Kargo** (`scripts/loot/cargo_storage.gd`): solid/liquid/gas ayrı limit, kabul/ret nedeni döner (ör. `NO_GAS_TANK`). Birim test (tests/).
 7. **Pickup** (`scenes/pickups/pickup.tscn`): kopan parça/hurda; menzilde magnet çekimi, toplanınca sinyal; havuzlanır.
-8. **Düşman** (`scenes/enemies/enemy_drone.tscn`): durum makinesi idle → approach → attack → retreat; basit projectile; ölünce scrap pickup. Oyuncu silahı: basit sabit yönlü blaster (fire_primary).
-9. **Prototip verisi** (`data/ships/starter_shuttle_01.tres`, `data/modules/laser_mk1.tres`, `data/resources/*.tres`, `data/enemies/drone_01.tres`): tüm sayılar `balance_prototype`.
+8. **Düşman** (D-004: küçük pirate/scout, `scenes/enemies/enemy_scout.tscn`): durum makinesi idle → approach → attack → retreat; basit projectile; ölünce scrap pickup. Oyuncu silahı: basit sabit yönlü blaster (fire_primary).
+9. **Prototip verisi** (`data/ships/starter_shuttle_01.tres`, `data/modules/laser_mk1.tres`, `data/resources/*.tres`, `data/enemies/scout_01.tres`): tüm sayılar `balance_prototype`.
 10. Hasar/ölüm/respawn akışı; softlock yok.
 
 ## Kabul
@@ -49,7 +52,7 @@ ROADMAP M1 kabul kriterleri içindeki uçuş, laser zinciri, pickup, düşman ma
 
 ## Ek — GAME_PLAN.md'den ilgili bölümler (birebir)
 
-> Aşağıdaki metin `docs/GAME_PLAN.md` v0.1'den kopyalandı; çelişkide GAME_PLAN + `docs/DECISIONS.md` geçerlidir. **Motor artık Godot 4** (D-001) — §3.3/§20'deki "motor açık" ifadeleri kapandı.
+> Aşağıdaki metin `docs/GAME_PLAN.md` v0.1'den kopyalandı; çelişkide GAME_PLAN + `docs/DECISIONS.md` geçerlidir. **Motor artık Godot 4** (D-001) — §3.3/§20'deki "motor açık" ifadeleri kapandı. **§4.3'teki parça "uyumluluğu" ve grade'e bağlı görünüm D-006 ile güncellendi:** sabit parça seti, başka gemiden parça yok, görsel/stat ilerleme = L1–L3.
 
 
 ### 2. Tasarım önceliği ve ana oynanış döngüleri

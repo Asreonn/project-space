@@ -24,7 +24,7 @@ Ekibin lideri ve GAME_PLAN'ın koruyucususun. Kapsamı küçük, sistemi büyüt
 ## M1 görevlerin
 
 1. M1 kapsamını ROADMAP'e göre kilitle; kapsam kaymasını reddet (Bomb/Drill/salvage M2+).
-2. **D-004:** M1 düşmanı drone mu pirate/scout mu? Kullanıcıya sor, kararı DECISIONS'a yaz, Modeler/Gameplay'e bildir.
+2. **D-004:** kapandı (2026-10-22): MVP'de düşman yok, M1'e ertelendi; M1'de GAME_PLAN §9.2 uyarınca küçük pirate/scout. Şimdiki hedef [mvp.md](mvp.md).
 3. Kontrol şeması (§3.2 [AÇIK]): Gameplay ile 2 varyant (WASD+fare yönlendirme vs. tank-tarzı) playtest planı.
 4. Kamera açısı (§20): perspektif düşük-FOV vs ortografik karşılaştırma kriterleri.
 5. `docs/PLAYTEST_M1.md`: 10 dakikalık test senaryosu + his anketi (uçuş, okunabilirlik, laser tatmini, loot hissi).
