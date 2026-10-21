@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Strict GDScript check: temporarily turns typing / unsafe / unused warnings
-# into errors (override.cfg) and parses every project script outside addons/.
+# into errors (override.cfg) and loads every script under scripts/ and tests/
+# in one Godot process (tests/tools/lint_runner.gd, autoloads available).
 # Exit 1 on any finding. Usage: tests/tools/lint_strict.sh [godot-binary]
 set -u
 GODOT="${1:-godot}"
@@ -36,10 +37,10 @@ gdscript/warnings/unassigned_variable=2
 gdscript/warnings/unassigned_variable_op_assign=2
 CFG
 trap 'rm -f "$ROOT/override.cfg"' EXIT
-status=0
-while IFS= read -r f; do
-  out=$("$GODOT" --headless --path . --check-only -s "res://$f" 2>&1 | grep -vE '^Godot Engine|^$')
-  if [ -n "$out" ]; then echo "== $f"; echo "$out"; status=1; fi
-done < <(find scripts tests -name '*.gd' | sort)
+out=$("$GODOT" --headless --path . -s res://tests/tools/lint_runner.gd 2>&1 | grep -vE '^Godot Engine|^$')
+status=$?
+# Print only the blocks of scripts that produced output.
+echo "$out" | awk '/^== /{hdr=$0; next} /^lint_runner:/{print; next} {if (hdr!="") {print hdr; hdr=""} print}'
+if echo "$out" | grep -qE 'SCRIPT ERROR|LINT FAIL|Parse Error'; then status=1; fi
 [ $status -eq 0 ] && echo "lint_strict: OK"
 exit $status
