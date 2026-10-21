@@ -10,7 +10,8 @@ const LASER := "res://data/modules/laser_mk1.tres"
 const PROPOSAL := "res://data/balance/mvp_economy_proposal.json"
 const LOWER_IS_BETTER: Array[StringName] = ShipStat.LOWER_IS_BETTER
 const FIRST_UPGRADE_BAND := Vector2(180.0, 300.0)
-const FULL_L3_BAND := Vector2(1500.0, 3600.0)
+const FIRST_L3_MAX := 600.0 ## s, median: first L3 of any part by 10:00
+const FULL_L3_BAND := Vector2(1200.0, 1500.0) ## s, median: full starter L3 at ~20-25 min
 const SEEDS := 15
 
 var hull: ShipHullDefinition
@@ -101,10 +102,12 @@ func test_first_upgrade_is_felt() -> void:
 func test_pacing_targets() -> void:
 	var sim := MvpBalanceSim.new()
 	var firsts: Array[float] = []
+	var first3s: Array[float] = []
 	var fulls: Array[float] = []
 	for sd in SEEDS:
 		var r := sim.simulate(1000 + sd)
 		firsts.append(r.first_upgrade_t)
+		first3s.append(r.first_l3_t)
 		fulls.append(r.full_l3_t)
 	firsts.sort()
 	fulls.sort()
@@ -112,6 +115,9 @@ func test_pacing_targets() -> void:
 	var l := fulls[SEEDS >> 1]
 	assert_between(f, FIRST_UPGRADE_BAND.x, FIRST_UPGRADE_BAND.y, "first upgrade median %.0f s" % f)
 	assert_between(l, FULL_L3_BAND.x, FULL_L3_BAND.y, "full L3 median %.0f s" % l)
+	first3s.sort()
+	var f3 := first3s[SEEDS >> 1]
+	assert_between(f3, 0.0, FIRST_L3_MAX, "first L3 median %.0f s" % f3)
 
 
 static func _mods(lvl: ShipPartLevel) -> Dictionary[StringName, float]:
