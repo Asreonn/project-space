@@ -69,7 +69,7 @@ Veri modelinde var olan alanlar (`fuel_*`, `heat_*`, `hull`, `storage_gas` vb.) 
 | Asteroid HP | S 30, M 80, L 160 (Laser 14 HP/s, `mining_power` 10 = ×1.0) |
 | Düşen cevher | S 2–3, M 5–7, L 10–14 birim. Damarlı varyantlarda yaklaşık yarısı kristal |
 | Satış değeri | `ore_common_solid` 4 kr/u, `crystal_blue_solid` 12 kr/u |
-| Yükseltme maliyeti (parça başına) | L2 120 kr, L3 300 kr. **Yalnızca kredi** (D-011) |
+| Yükseltme maliyeti (parça başına) | L2 yaklaşık 320–360 kr; L3 değeri ilk L3 ≤ 10 dk'da gelecek şekilde ayarlanır. Kesin değerler `docs/briefs/mvp_balance.md`'de. **Yalnızca kredi** (D-011). Debug build'de F9 ile +500 kr (demo/test için) |
 | Stat artışı | `m1_flight_tuning.md` §3 tablosu (Head `mining_power` 10/12/14, Engine `flying_speed` 12/13,2/14,4, Wings `maneuver_speed` 270/300/330, Body kargo 30/40/50) |
 
 Kontrol hesabı: dolu kargo yaklaşık 20 cevher ve 10 kristaldir, bu da yaklaşık 200 kr eder. İlk tur 3–4 dk sürer ve ilk L2 yükseltmesine yeter.
@@ -111,7 +111,7 @@ Mevcut `event_bus.gd`'deki sinyaller korunur, adları ve argümanları değişme
 
 | Sinyal | Yayınlayan | Dinleyen |
 |---|---|---|
-| `mining_beam_started(origin: Node3D, target: Node3D)`: `origin` = `FX_MiningOrigin`, `target` = asteroid | Gameplay (kazma ışını) | VFX (ışını açar) |
+| `mining_beam_started(origin: Vector3, target: Vector3)`: dünya konumları (`FX_MiningOrigin` ve isabet noktası); koddaki imza esas | Gameplay (kazma ışını) | VFX (ışını açar) |
 | `mining_beam_stopped()` | Gameplay (kazma ışını) | VFX |
 | `asteroid_damaged(asteroid: Node3D, hit_position: Vector3, hp_ratio: float)`: ışın temas ettiği her fizik karesinde | Engineer (`asteroid.gd`) | VFX (ışın ucu, kıvılcım, kızarma) |
 | `asteroid_destroyed(position: Vector3, size: StringName)` | Engineer (`asteroid.gd`) | VFX (kırılma), Engineer (yeniden doğma sayacı), Gameplay (ışını keser) |
